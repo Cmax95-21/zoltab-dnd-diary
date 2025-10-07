@@ -6,9 +6,6 @@
   <title>Gestione Campagna D&D</title>
   <link rel="stylesheet" href="style.css" />
   <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
-  <script type="module" src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js"></script>
-  <script type="module" src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database.js"></script>
-  <script type="module" src="https://www.gstatic.com/firebasejs/9.22.0/firebase-storage.js"></script>
 </head>
 <body>
   <div id="nicknameModal" class="modal">
@@ -21,12 +18,6 @@
       <button id="joinCampaign" class="btn btn--primary">Unisciti alla Campagna</button>
     </div>
   </div>
-
-  <div id="loadingOverlay" class="loading-overlay hidden">
-    <div class="loading-spinner"></div>
-    <p>Sincronizzazione in corso...</p>
-  </div>
-
   <header class="header">
     <div class="container">
       <div class="header-content">
@@ -45,7 +36,6 @@
       </div>
     </div>
   </header>
-
   <main class="main-content container">
     <nav class="nav-tabs">
       <button class="nav-tab active" data-tab="timeline">Timeline</button>
@@ -56,7 +46,6 @@
       <button class="nav-tab" data-tab="map">Mappa</button>
       <button class="nav-tab" data-tab="session">Nuova Sessione</button>
     </nav>
-
     <section id="timeline" class="tab-content active">
       <div id="timelineContainer" class="timeline-container"></div>
     </section>
@@ -86,7 +75,6 @@
       <div id="sessionParseResults"></div>
     </section>
   </main>
-
-  <script type="module" src="app.js"></script>
+  <script src="app.js"></script>
 </body>
 </html>

@@ -159,12 +159,14 @@ textarea {
 .form-group {
   margin-bottom: 1.2rem;
 }
+
 .form-label {
   margin-bottom: 6px;
   font-size: 1.1rem;
   font-weight: 500;
   display: block;
 }
+
 .form-control {
   width: 100%;
   padding: 8px 12px;
@@ -183,5 +185,3 @@ textarea {
   margin-right: 1em;
   color: white;
 }
-
-/* Add more styling as needed for your UX/UI! */

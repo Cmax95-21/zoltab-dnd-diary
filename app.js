@@ -126,7 +126,6 @@ class CampaignManager {
     
     parseSessionText(text) {
         const suggestions = { characters: new Set(), locations: new Set(), organizations: new Set(), missions: new Set() };
-        // Simula il parsing: usa espressioni regolari più potenti nella versione finale.
         if (text.toLowerCase().includes("zoltab")) suggestions.characters.add("Zoltab");
         if (text.toLowerCase().includes("holran")) suggestions.locations.add("Holran");
         return suggestions;
@@ -245,8 +244,10 @@ class CampaignManager {
 
         this.initializeSortableTimeline(); 
         
+        // Mostra i dettagli dell'ultimo giorno per default o del giorno attivo
         const idToDisplay = this.activeDayId || (this.timeline.length > 0 ? this.timeline[this.timeline.length - 1].id : null);
         if (idToDisplay) {
+            // Chiamata intenzionale a showDayDetails solo all'interno di renderTimeline
             this.showDayDetails(idToDisplay);
         }
     }
@@ -314,7 +315,6 @@ class CampaignManager {
             detailsBtn.textContent = 'Scheda Dettagli';
             detailsBtn.classList.add('btn', 'btn--secondary');
             
-            // Listener per aprire la Modale (Funzionalità)
             detailsBtn.addEventListener('click', () => {
                  this.showEntityDetails(entity.name, 'character'); 
             });
@@ -326,11 +326,19 @@ class CampaignManager {
         container.appendChild(grid);
     }
     
-    // CORREZIONE CRITICA e Implementazione Dettagli Giorno
+    // CORREZIONE CRITICA: Rimosso this.renderTimeline() per evitare il loop.
     showDayDetails(dayId) {
         const day = this.timeline.find(d => d.id === dayId);
         if (!day) return;
         this.activeDayId = dayId;
+        
+        // Aggiorna lo stato "active" della timeline senza ricorsione
+        document.querySelectorAll('.timeline-day').forEach(item => {
+             item.classList.remove('active');
+             if (item.dataset.dayId == dayId) {
+                 item.classList.add('active');
+             }
+        });
 
         const detailsContainer = document.getElementById('dayDetailsPanel'); 
         if (!detailsContainer) return;
@@ -353,9 +361,7 @@ class CampaignManager {
         // 1. Evidenzia Entità nel testo (prepara i link)
         const allEntities = [...characters, ...locations, ...organizations];
         allEntities.forEach(name => {
-            // Usa il nome esatto come chiave
             const type = characters.includes(name) ? 'entity-character' : 'entity-location';
-            // Il dataset 'entity-name' è usato per passare il nome al listener
             content = content.replace(new RegExp(`\\b${name}\\b`, 'gi'), `<span class="entity-link ${type}" data-entity-name="${name}" data-entity-type="${type.includes('character') ? 'character' : 'location'}">${name}</span>`);
         });
 
@@ -377,9 +383,8 @@ class CampaignManager {
         `;
 
         detailsContainer.innerHTML = detailHTML;
-        this.renderTimeline(); // Rirenderizza la timeline per aggiornare la classe 'active'
 
-        // 3. Attiva i listener sui link appena caricati (Funzionalità)
+        // 3. Attiva i listener sui link appena caricati
         detailsContainer.querySelectorAll('.entity-link').forEach(link => {
             link.addEventListener('click', (e) => {
                 const name = e.target.dataset.entityName;
@@ -402,7 +407,6 @@ class CampaignManager {
         `;
     }
 
-    // NUOVO: Implementazione Dettagli Entità (Modale) - (Funzionalità)
     showEntityDetails(name, type) {
         const modal = document.getElementById('entityModal');
         const modalBody = document.getElementById('modalBody');
@@ -477,16 +481,10 @@ class CampaignManager {
         };
 
         this.timeline = initialData.timeline;
-        // La chiave della Map DEVE corrispondere al nome usato nella timeline (es. "Zoltab")
         this.characters = new Map(Object.entries(initialData.characters)); 
         this.locations = new Map(Object.entries(initialData.locations));
         this.organizations = new Map(Object.entries(initialData.organizations));
-        // Imposta l'ultimo giorno come attivo per mostrare subito i dettagli
         this.activeDayId = initialData.timeline[initialData.timeline.length - 1].id;
-    }
-    
-    showEntityDetails(name, type) {
-        // La logica è ora implementata nel metodo principale.
     }
 }
 

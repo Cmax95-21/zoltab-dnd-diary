@@ -1,92 +1,92 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Diario di Zoltab - Campagna D&D</title>
-    <link rel="stylesheet" href="style.css" />
-    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Gestione Campagna D&D - Enhanced</title>
+  <link rel="stylesheet" href="style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
 </head>
 <body>
-    <header class="header">
-        <div class="container">
-            <div class="header-content">
-                <h1 class="header-title">Diario di Zoltab</h1>
-                <div class="header-controls">
-                    <div class="user-mode-toggle">
-                        <span class="mode-label">Modalità:</span>
-                        <button id="modeToggle" class="btn btn--secondary">
-                            <span id="modeText">Giocatore</span>
-                        </button>
-                    </div>
-                    <button id="saveChanges" class="btn btn--primary master-only hidden">
-                        Salva
-                    </button>
-                    <div class="search-container">
-                        <input type="text" id="globalSearch" class="form-control search-input" placeholder="Cerca ovunque..." />
-                    </div>
-                </div>
-            </div>
+  <header class="header">
+    <div class="container">
+      <div class="header-content">
+        <h1 class="header-title">Gestione Campagna D&D</h1>
+        <div class="header-controls">
+          <div class="mode-toggle">
+            <label class="switch">
+              <input type="checkbox" id="masterMode" checked>
+              <span class="slider"></span>
+            </label>
+            <span id="modeLabel">Modalità Master</span>
+          </div>
+          <button class="btn btn--primary" id="saveBtn">💾 Salva</button>
+          <button class="btn btn--secondary" id="backupBtn">📥 Backup</button>
+          <input type="file" id="restoreInput" accept=".json" style="display:none;">
+          <button class="btn btn--secondary" id="restoreBtn">📤 Ripristina</button>
         </div>
-    </header>
-
-    <main class="main">
-        <div class="container">
-            <nav class="nav-tabs">
-                <button class="nav-tab active" data-tab="timeline">Timeline</button>
-                <button class="nav-tab" data-tab="characters">Personaggi</button>
-                <button class="nav-tab" data-tab="locations">Luoghi</button>
-                <button class="nav-tab" data-tab="quests">Missioni</button>
-                <button class="nav-tab" data-tab="organizations">Organizzazioni</button>
-                <button class="nav-tab" data-tab="map">Mappa</button>
-                <button class="nav-tab" data-tab="session">Nuova Sessione</button>
-            </nav>
-
-            <section id="timeline" class="tab-content active">
-                <div id="timelineContainer" class="timeline-container"></div>
-                
-                <div id="dayDetailsPanel" class="day-details-panel">
-                    <p>Clicca su un giorno della Timeline per vedere i dettagli.</p>
-                </div>
-            </section>
-
-            <section id="characters" class="tab-content">
-                <div id="charactersList"></div>
-            </section>
-            
-            <section id="locations" class="tab-content">
-                <div id="locationsList"></div>
-            </section>
-            
-            <section id="quests" class="tab-content">
-                <div id="questsList"></div>
-            </section>
-            
-            <section id="organizations" class="tab-content">
-                <div id="organizationsList"></div>
-            </section>
-            
-            <section id="map" class="tab-content">
-                <div id="mapContainer" class="map-container">Mappa placeholder</div>
-            </section>
-            
-            <section id="session" class="tab-content">
-                <textarea id="sessionInput" placeholder="Inserisci il testo della nuova sessione..."></textarea>
-                <button id="sessionParseButton" class="btn btn--primary">Analizza Sessione</button>
-                <div id="sessionParseResults"></div> 
-            </section>
-
-        </div>
-    </main>
-    
-    <div id="entityModal" class="modal-overlay hidden">
-        <div class="modal-content">
-            <button id="closeModalBtn" class="close-btn">&times;</button>
-            <div id="modalBody">
-                </div>
-        </div>
+      </div>
     </div>
+  </header>
 
-    <script src="app.js"></script>
+  <div class="search-bar">
+    <input type="text" id="globalSearch" placeholder="🔍 Ricerca globale..." class="form-control">
+    <div class="search-filters">
+      <button class="filter-btn active" data-filter="all">Tutto</button>
+      <button class="filter-btn" data-filter="characters">Personaggi</button>
+      <button class="filter-btn" data-filter="locations">Luoghi</button>
+      <button class="filter-btn" data-filter="missions">Missioni</button>
+      <button class="filter-btn" data-filter="organizations">Organizzazioni</button>
+    </div>
+  </div>
+
+  <main class="main-content container">
+    <nav class="nav-tabs">
+      <button class="nav-tab active" data-tab="timeline">Timeline</button>
+      <button class="nav-tab" data-tab="characters">Personaggi</button>
+      <button class="nav-tab" data-tab="locations">Luoghi</button>
+      <button class="nav-tab" data-tab="missions">Missioni</button>
+      <button class="nav-tab" data-tab="organizations">Organizzazioni</button>
+      <button class="nav-tab" data-tab="map">Mappa</button>
+      <button class="nav-tab" data-tab="session">Nuova Sessione</button>
+    </nav>
+
+    <section id="timeline" class="tab-content active">
+      <div id="timelineContainer" class="timeline-container"></div>
+    </section>
+
+    <section id="characters" class="tab-content">
+      <div id="charactersList"></div>
+      <button id="addCharacterBtn" class="btn btn--small btn--primary">+ Aggiungi Personaggio</button>
+    </section>
+
+    <section id="locations" class="tab-content">
+      <div id="locationsList"></div>
+      <button id="addLocationBtn" class="btn btn--small btn--primary">+ Aggiungi Luogo</button>
+    </section>
+
+    <section id="missions" class="tab-content">
+      <div id="missionsList"></div>
+      <button id="addMissionBtn" class="btn btn--small btn--primary">+ Aggiungi Missione</button>
+    </section>
+
+    <section id="organizations" class="tab-content">
+      <div id="organizationsList"></div>
+      <button id="addOrganizationBtn" class="btn btn--small btn--primary">+ Aggiungi Organizzazione</button>
+    </section>
+
+    <section id="map" class="tab-content">
+      <input type="file" id="mapUpload" accept="image/*" />
+      <div id="mapContainer" class="map-container"></div>
+    </section>
+
+    <section id="session" class="tab-content">
+      <textarea id="sessionInput" placeholder="Inserisci il testo della nuova sessione..."></textarea>
+      <button id="sessionParseButton" class="btn btn--primary">Analizza Sessione</button>
+      <div id="sessionParseResults"></div>
+    </section>
+  </main>
+
+  <script src="app.js"></script>
 </body>
 </html>

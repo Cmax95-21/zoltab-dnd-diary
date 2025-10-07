@@ -6,54 +6,6 @@
     <title>Diario di Zoltab - Campagna D&D</title>
     <link rel="stylesheet" href="style.css" />
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
-
-    <style>
-        .day-details-panel {
-            background-color: var(--color-bg-light);
-            border-radius: 8px;
-            padding: 1.5rem;
-            margin-top: 2rem;
-            display: flex; /* Utilizzo Flexbox per affiancare testo e associazioni */
-            gap: 2rem;
-        }
-        .day-content-section {
-            flex-basis: 70%;
-        }
-        .day-associations-grid {
-            flex-basis: 30%;
-            display: grid;
-            gap: 1rem;
-        }
-        .entity-grid {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 1.5rem;
-            margin-top: 1rem;
-        }
-        .entity-card {
-            min-width: 250px;
-            flex-grow: 1;
-            background: var(--color-bg-light);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            padding: 1rem;
-            border-radius: 4px;
-        }
-        .entity-tag {
-            display: inline-block;
-            padding: 0.3rem 0.6rem;
-            margin: 0.2rem;
-            border-radius: 4px;
-            font-size: 0.9em;
-            background: var(--color-secondary);
-            color: var(--color-bg);
-        }
-        .entity-link {
-            cursor: pointer;
-            font-weight: bold;
-            text-decoration: underline;
-            color: var(--color-primary);
-        }
-    </style>
 </head>
 <body>
     <header class="header">
@@ -68,8 +20,7 @@
                         </button>
                     </div>
                     <button id="saveChanges" class="btn btn--primary master-only hidden">
-                        Salva Modifiche
-                        <span id="unsavedCount" class="unsaved-indicator hidden">0</span>
+                        Salva
                     </button>
                     <div class="search-container">
                         <input type="text" id="globalSearch" class="form-control search-input" placeholder="Cerca ovunque..." />
@@ -116,8 +67,7 @@
             </section>
             
             <section id="map" class="tab-content">
-                <input type="file" id="mapUpload" accept="image/*" />
-                <div id="mapContainer" class="map-container"></div>
+                <div id="mapContainer" class="map-container">Mappa placeholder</div>
             </section>
             
             <section id="session" class="tab-content">
@@ -128,6 +78,14 @@
 
         </div>
     </main>
+    
+    <div id="entityModal" class="modal-overlay hidden">
+        <div class="modal-content">
+            <button id="closeModalBtn" class="close-btn">&times;</button>
+            <div id="modalBody">
+                </div>
+        </div>
+    </div>
 
     <script src="app.js"></script>
 </body>

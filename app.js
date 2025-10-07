@@ -1,17 +1,15 @@
 class CampaignManager {
     constructor() {
-        // Mappe principali per la gestione delle entità
         this.timeline = []; 
         this.characters = new Map(); 
         this.locations = new Map(); 
         this.quests = new Map(); 
         this.organizations = new Map(); 
         
-        // Variabili di stato
         this.isMasterMode = false;
         this.currentSessionText = ''; 
-        this.sortableInstance = null; // Per SortableJS
-        this.activeDayId = null; // ID della giornata attualmente mostrata nel pannello dettagli
+        this.sortableInstance = null;
+        this.activeDayId = null;
 
         this.init();
     }
@@ -30,7 +28,6 @@ class CampaignManager {
             if (savedData) {
                 const data = JSON.parse(savedData);
                 this.timeline = data.timeline || [];
-                // Ricostruiamo le Map dagli oggetti salvati
                 this.characters = new Map(Object.entries(data.characters || {}));
                 this.locations = new Map(Object.entries(data.locations || {}));
                 this.quests = new Map(Object.entries(data.quests || {}));
@@ -41,7 +38,6 @@ class CampaignManager {
             }
         } catch (err) {
             console.error("Errore durante il caricamento dei dati:", err);
-            // Se c'è un errore grave, usa i dati di default
             this.initializeDefaultData();
         }
     }
@@ -50,7 +46,6 @@ class CampaignManager {
         try {
             const data = {
                 timeline: this.timeline,
-                // Convertiamo le Map in oggetti per il salvataggio in JSON
                 characters: Object.fromEntries(this.characters),
                 locations: Object.fromEntries(this.locations),
                 quests: Object.fromEntries(this.quests),
@@ -107,11 +102,19 @@ class CampaignManager {
                     contentElement.classList.add('active');
                 }
                 
-                // Forzo il rendering se si va in Personaggi/Timeline
                 if (tabName === 'characters') this.renderCharacters();
                 if (tabName === 'timeline') this.renderTimeline();
             });
         });
+
+        // Listener per chiudere la Modale (Funzionalità)
+        const closeModalBtn = document.getElementById('closeModalBtn');
+        if (closeModalBtn) {
+            closeModalBtn.addEventListener('click', () => {
+                const modal = document.getElementById('entityModal');
+                if (modal) modal.classList.add('hidden');
+            });
+        }
     }
 
     toggleMasterMode(isMaster) {
@@ -119,12 +122,11 @@ class CampaignManager {
         this.renderUI();
     }
     
-    // --- 3. LOGICA DI PARSING & INSERIMENTO (Placeholder Semplificato) ---
+    // --- 3. LOGICA DI PARSING & INSERIMENTO (Placeholder) ---
     
     parseSessionText(text) {
-        // Placeholder: in un'app funzionante, questo userebbe Regex.
         const suggestions = { characters: new Set(), locations: new Set(), organizations: new Set(), missions: new Set() };
-        // Simula il risultato del parsing basato su nomi noti
+        // Simula il parsing: usa espressioni regolari più potenti nella versione finale.
         if (text.toLowerCase().includes("zoltab")) suggestions.characters.add("Zoltab");
         if (text.toLowerCase().includes("holran")) suggestions.locations.add("Holran");
         return suggestions;
@@ -138,7 +140,7 @@ class CampaignManager {
 
         const confirmBtn = document.createElement('button');
         confirmBtn.textContent = 'Conferma e Crea Giorno';
-        confirmBtn.classList.add('btn', 'btn--primary');
+        confirmBtn.classList.add('btn', 'btn--primary', 'master-only');
         
         confirmBtn.addEventListener('click', () => {
              this.applyAssociations({ 
@@ -154,7 +156,7 @@ class CampaignManager {
     }
 
     applyAssociations(selected) {
-        const newDayId = Date.now(); // ID univoco
+        const newDayId = Date.now();
         const newDay = {
             id: newDayId, 
             day: this.timeline.length + 1, 
@@ -168,18 +170,17 @@ class CampaignManager {
         };
         this.timeline.push(newDay);
 
-        // Aggiorna i personaggi esistenti con la nuova apparizione
         selected.characters.forEach(name => {
             let char = this.characters.get(name);
+            if (!char) {
+                 this.addNewEntity('character', { name: name });
+                 char = this.characters.get(name);
+            }
             if (char) {
                 if (!char.appearancesDays) char.appearancesDays = [];
                 char.appearancesDays.push(newDay.day);
-            } else {
-                 // Aggiungi un nuovo personaggio se non esiste
-                 this.addNewEntity('character', { name: name, appearancesDays: [newDay.day] });
-                 char = this.characters.get(name); // Rileggo l'oggetto creato
+                this.characters.set(name, char);
             }
-            if (char) this.characters.set(name, char); // Aggiorno la Map
         });
 
         this.saveData();
@@ -187,10 +188,8 @@ class CampaignManager {
     }
 
     addNewEntity(type, data) {
-        // Crea una chiave uniforme
         const nameKey = data.name;
 
-        // Dati minimi di default per la nuova entità
         const newEntity = Object.assign({ 
             id: nameKey.toLowerCase().replace(/\s/g, '-'), 
             race: 'Sconosciuta', 
@@ -206,16 +205,14 @@ class CampaignManager {
             case 'location':
                 this.locations.set(nameKey, newEntity);
                 break;
-            // ... altri tipi
         }
     }
 
-    // --- 4. LOGICA DI RENDERING E RIORDINO ---
+    // --- 4. LOGICA DI RENDERING E INTERATTIVITÀ ---
 
     renderUI() {
         this.renderTimeline();
         this.renderCharacters();
-        // Nascondi/Mostra elementi Master-only in base allo stato
         document.querySelectorAll('.master-only').forEach(el => {
             el.classList.toggle('hidden', !this.isMasterMode);
         });
@@ -231,7 +228,7 @@ class CampaignManager {
             const dayItem = document.createElement('div');
             dayItem.classList.add('timeline-day');
             if (day.id === this.activeDayId) {
-                 dayItem.classList.add('active'); // Stile per il giorno selezionato
+                 dayItem.classList.add('active'); 
             }
             dayItem.dataset.dayId = day.id; 
             
@@ -239,7 +236,6 @@ class CampaignManager {
             dayLabel.innerHTML = `<strong>Giorno ${day.day}</strong>: ${day.title}`;
             dayItem.appendChild(dayLabel);
             
-            // Aggiunge l'evento click per mostrare il pannello dei dettagli del giorno
             dayItem.addEventListener('click', () => {
                  this.showDayDetails(day.id); 
             });
@@ -247,10 +243,8 @@ class CampaignManager {
             container.appendChild(dayItem);
         });
 
-        // Inizializza Drag & Drop
         this.initializeSortableTimeline(); 
         
-        // Mostra i dettagli dell'ultimo giorno per default o del giorno attivo
         const idToDisplay = this.activeDayId || (this.timeline.length > 0 ? this.timeline[this.timeline.length - 1].id : null);
         if (idToDisplay) {
             this.showDayDetails(idToDisplay);
@@ -267,23 +261,16 @@ class CampaignManager {
             animation: 150,
             direction: 'horizontal',
             onEnd: (evt) => {
-                const oldIndex = evt.oldIndex;
-                const newIndex = evt.newIndex;
-                if (oldIndex !== newIndex) {
-                    this.reorderTimeline(oldIndex, newIndex);
-                }
+                this.reorderTimeline(evt.oldIndex, evt.newIndex);
             },
         });
     }
 
     reorderTimeline(oldIndex, newIndex) {
         if (oldIndex === newIndex) return;
-        
-        // Sposta l'elemento nell'array
         const movedDay = this.timeline.splice(oldIndex, 1)[0];
         this.timeline.splice(newIndex, 0, movedDay);
 
-        // Riassegna i numeri sequenziali ai giorni
         this.timeline.forEach((day, idx) => {
             day.day = idx + 1;
         });
@@ -297,8 +284,6 @@ class CampaignManager {
         if (!container) return;
         
         container.innerHTML = ''; 
-        
-        // Usiamo un container per le schede per replicare lo stile dell'app
         const grid = document.createElement('div');
         grid.classList.add('entity-grid'); 
 
@@ -306,15 +291,14 @@ class CampaignManager {
             const card = document.createElement('div');
             card.classList.add('entity-card');
             
-            // --- Contenuto della scheda ---
             const header = document.createElement('h3');
             header.textContent = entity.name;
             card.appendChild(header);
 
             const details = document.createElement('p');
             details.innerHTML = `
-                <strong>${entity.class || 'Classe Sconosciuta'}</strong> | 
-                <span>${entity.race || 'Razza Sconosciuta'}</span><br>
+                <strong>${entity.class || 'N.D.'}</strong> | 
+                <span>${entity.race || 'Sconosciuta'}</span><br>
                 <small>Apparizioni: ${entity.appearancesDays ? entity.appearancesDays.length : 0}</small>
             `;
             card.appendChild(details);
@@ -330,6 +314,7 @@ class CampaignManager {
             detailsBtn.textContent = 'Scheda Dettagli';
             detailsBtn.classList.add('btn', 'btn--secondary');
             
+            // Listener per aprire la Modale (Funzionalità)
             detailsBtn.addEventListener('click', () => {
                  this.showEntityDetails(entity.name, 'character'); 
             });
@@ -341,19 +326,16 @@ class CampaignManager {
         container.appendChild(grid);
     }
     
-    // CORREZIONE CRITICA PER L'ERRORE "is not iterable"
+    // CORREZIONE CRITICA e Implementazione Dettagli Giorno
     showDayDetails(dayId) {
         const day = this.timeline.find(d => d.id === dayId);
         if (!day) return;
-        this.activeDayId = dayId; // Aggiorna lo stato del giorno attivo
+        this.activeDayId = dayId;
 
         const detailsContainer = document.getElementById('dayDetailsPanel'); 
-        if (!detailsContainer) {
-            console.error("Manca l'elemento #dayDetailsPanel nell'HTML.");
-            return;
-        }
+        if (!detailsContainer) return;
         
-        // Assegnazione sicura con fallback a array vuoto per evitare l'errore "is not iterable"
+        // Gestione array sicura per evitare l'errore "is not iterable"
         const characters = day.characters || [];
         const locations = day.locations || [];
         const events = day.events || [];
@@ -366,14 +348,15 @@ class CampaignManager {
             </div>
         `;
         
-        // --- 1. Sezione Contenuto (Testo della Sessione Interattivo) ---
         let content = day.content;
         
-        // Evidenzia e rende interattivi i nomi delle entità nel testo
+        // 1. Evidenzia Entità nel testo (prepara i link)
         const allEntities = [...characters, ...locations, ...organizations];
         allEntities.forEach(name => {
+            // Usa il nome esatto come chiave
             const type = characters.includes(name) ? 'entity-character' : 'entity-location';
-            content = content.replace(new RegExp(`\\b${name}\\b`, 'gi'), `<span class="entity-link ${type}">${name}</span>`);
+            // Il dataset 'entity-name' è usato per passare il nome al listener
+            content = content.replace(new RegExp(`\\b${name}\\b`, 'gi'), `<span class="entity-link ${type}" data-entity-name="${name}" data-entity-type="${type.includes('character') ? 'character' : 'location'}">${name}</span>`);
         });
 
         detailHTML += `
@@ -383,7 +366,7 @@ class CampaignManager {
             </div>
         `;
 
-        // --- 2. Sezione Riferimenti (Box a Destra) ---
+        // 2. Sezione Riferimenti
         detailHTML += `
             <div class="day-associations-grid">
                 ${this.createAssocBox('Personaggi', characters, 'tag-char')}
@@ -395,11 +378,18 @@ class CampaignManager {
 
         detailsContainer.innerHTML = detailHTML;
         this.renderTimeline(); // Rirenderizza la timeline per aggiornare la classe 'active'
+
+        // 3. Attiva i listener sui link appena caricati (Funzionalità)
+        detailsContainer.querySelectorAll('.entity-link').forEach(link => {
+            link.addEventListener('click', (e) => {
+                const name = e.target.dataset.entityName;
+                const type = e.target.dataset.entityType;
+                this.showEntityDetails(name, type);
+            });
+        });
     }
     
-    // CORREZIONE CRITICA PER L'ERRORE "is not iterable"
     createAssocBox(title, items, tagClass) {
-        // Gestione sicura: se items non è un array o è vuoto, restituisce stringa vuota
         if (!items || !Array.isArray(items) || items.length === 0) return '';
         
         const tags = items.map(name => `<span class="entity-tag ${tagClass}">${name}</span>`).join('');
@@ -412,57 +402,73 @@ class CampaignManager {
         `;
     }
 
+    // NUOVO: Implementazione Dettagli Entità (Modale) - (Funzionalità)
+    showEntityDetails(name, type) {
+        const modal = document.getElementById('entityModal');
+        const modalBody = document.getElementById('modalBody');
+
+        if (!modal || !modalBody) return;
+
+        let entity = (type === 'character' ? this.characters.get(name) : this.locations.get(name));
+        let appearances = (entity && entity.appearancesDays) || [];
+        
+        if (!entity) {
+            modalBody.innerHTML = `<h2>Errore</h2><p>Dettagli per "${name}" non trovati in ${type}.</p>`;
+        } else {
+            modalBody.innerHTML = `
+                <h2 class="modal-title">${entity.name}</h2>
+                <p><strong>Tipo:</strong> ${type.charAt(0).toUpperCase() + type.slice(1)}</p>
+                
+                ${entity.class ? `<p><strong>Classe:</strong> ${entity.class}</p>` : ''}
+                ${entity.race ? `<p><strong>Razza:</strong> ${entity.race}</p>` : ''}
+                ${entity.status ? `<p><strong>Stato:</strong> ${entity.status}</p>` : ''}
+                
+                <h3>Descrizione:</h3>
+                <p>${entity.description || 'Nessuna descrizione disponibile.'}</p>
+                
+                <hr style="border-color: rgba(255, 255, 255, 0.1);">
+                
+                <h3>Appare nei giorni:</h3>
+                <p>${appearances.length > 0 ? appearances.map(day => `Giorno ${day}`).join(', ') : 'Nessuna apparizione registrata.'}</p>
+
+                <button class="btn btn--primary master-only" style="margin-top: 15px;">Modifica Scheda</button>
+            `;
+        }
+
+        modal.classList.remove('hidden');
+        document.querySelectorAll('.master-only').forEach(el => {
+            el.classList.toggle('hidden', !this.isMasterMode);
+        });
+    }
+
     // --- 5. DATI DI DEFAULT ---
 
     initializeDefaultData() {
         const initialData = {
+            // I tuoi dati della timeline Giorno 1, 2, 3
             "timeline": [
-                {
-                  "id": 1,
-                  "day": 1,
-                  "title": "L'Inizio della Mia Nuova Via",
-                  "content": "Io, Zoltab, sono nato sotto il segno della luce nei Campi Benedetti dell’Elysium, nello strato di Amoria... [continua nel file originale]",
-                  "characters": ["Zoltab"],
-                  "locations": ["Elysium"],
-                  "events": ["Nascita", "Esilio", "Massacro"],
-                  "active": true,
-                  "organizations": []
-                },
-                {
-                  "id": 2,
-                  "day": 2,
-                  "title": "Il Piano Materiale",
-                  "content": "Attraverso un portale, arrivai al Piano Materiale, un luogo di caos e varietà razziale...",
-                  "characters": ["Zoltab", "Grass", "Lord Garli"],
-                  "locations": ["Holran", "Regno di Nielwenward ", "Impero Kalissiano "],
-                  "events": ["Attraversamento portale", "Primo contatto con la città di Holran"],
-                  "active": true,
-                  "organizations": []
-                },
-                {
-                  "id": 3,
-                  "day": 3,
-                  "title": "Un Nuovo Compito e un'Offerta di Alleanza",
-                  "content": "Il mattino seguente mi presentai a Lord Garli nella sua villa con giardino curato. Mi offrì un’alleanza per cercare il figlio scomparso, Shanas...",
-                  "events": ["Accettata la missione di Garli per ritrovare Shanas", "Incontro con Alber e Crowlei"],
-                  "characters": ["Zoltab", "Alber", "Lord Garli", "Crowlei", "Ruth", "Olidam"],
-                  "locations": ["Holran", "Augen", "Saingol"],
-                  "organizations": ["Compagnia della Bilancia"],
-                  "active": true
-                }
+                // Giorno 1
+                { "id": 1, "day": 1, "title": "L'Inizio della Mia Nuova Via", "content": "Io, Zoltab, sono nato sotto il segno della luce nei Campi Benedetti dell’Elysium...", "characters": ["Zoltab"], "locations": ["Elysium"], "events": ["Nascita", "Esilio", "Massacro"], "active": true, "organizations": [] },
+                // Giorno 2
+                { "id": 2, "day": 2, "title": "Il Piano Materiale", "content": "Attraverso un portale, arrivai al Piano Materiale, un luogo di caos...", "characters": ["Zoltab", "Grass", "Lord Garli"], "locations": ["Holran", "Regno di Nielwenward "], "events": ["Attraversamento portale", "Primo contatto con la città di Holran"], "active": true, "organizations": [] },
+                // Giorno 3
+                { "id": 3, "day": 3, "title": "Un Nuovo Compito e un'Offerta di Alleanza", "content": "Il mattino seguente mi presentai a Lord Garli nella sua villa con giardino curato...", "events": ["Accettata la missione di Garli per ritrovare Shanas", "Incontro con Alber e Crowlei"], "characters": ["Zoltab", "Alber", "Lord Garli", "Crowlei", "Ruth", "Olidam"], "locations": ["Holran", "Augen", "Saingol"], "organizations": ["Compagnia della Bilancia"], "active": true }
             ],
+            // I tuoi dati dei personaggi
             "characters": {
-                "Zoltab": { "id": "zoltab", "name": "Zoltab", "race": "Aasimar", "class": "Paladino della Conquista", "status": "Protagonista", "description": "Nato nell'Elysium, ora fondatore dell'Ordine Cinereo", "appearancesDays": [ 1, 2, 3 ], "avatar": null },
-                "Grass": { "id": "grass", "name": "Grass", "race": "Umano", "class": "Locandiere", "status": "Alleato", "appearancesDays": [ 2 ], "description": "Proprietario della taverna Fiasco Frisco", "avatar": null },
-                "Alber": { "id": "alber", "name": "Alber", "race": "Satiro", "class": "Warlock", "status": "Alleato", "appearancesDays": [ 3 ], "description": "Satiro della Selva Fatata", "avatar": null },
-                "Lord Garli": { "id": "lord-garli", "name": "Lord Garli", "race": "Umano", "class": "", "status": "PNG Importante", "appearancesDays": [ 2, 3 ], "description": "Vecchio umano, ex-avventuriero...", "avatar": null },
-                "Crowlei": { "id": "crowlei", "name": "Crowlei", "race": "Firbolg", "class": "Chierico", "status": "Alleato", "appearancesDays": [ 3 ], "description": "Chierico Firbolg", "avatar": null },
-                "Ruth": { "id": "ruth", "name": "Ruth", "race": "Umano", "class": "Paladino", "status": "PNG Secondario", "appearancesDays": [ 3 ], "description": "Vecchio paladino ex-avventuriero...", "avatar": null },
-                "Olidam": { "id": "olidam", "name": "Olidam", "race": "Halfling", "class": "Ladro", "status": "Alleato", "appearancesDays": [ 3 ], "description": "Misterioso mezz’uomo...", "avatar": null }
+                "Zoltab": { "id": "zoltab", "name": "Zoltab", "race": "Aasimar", "class": "Paladino della Conquista", "status": "Protagonista", "description": "Nato nell'Elysium, ora fondatore dell'Ordine Cinereo", "appearancesDays": [ 1, 2, 3 ] },
+                "Grass": { "id": "grass", "name": "Grass", "race": "Umano", "class": "Locandiere", "status": "Alleato", "appearancesDays": [ 2 ], "description": "Proprietario della taverna Fiasco Frisco" },
+                "Alber": { "id": "alber", "name": "Alber", "race": "Satiro", "class": "Warlock", "status": "Alleato", "appearancesDays": [ 3 ], "description": "Satiro della Selva Fatata" },
+                "Lord Garli": { "id": "lord-garli", "name": "Lord Garli", "race": "Umano", "class": "", "status": "PNG Importante", "appearancesDays": [ 2, 3 ], "description": "Vecchio umano, ex-avventuriero..." },
+                "Crowlei": { "id": "crowlei", "name": "Crowlei", "race": "Firbolg", "class": "Chierico", "status": "Alleato", "appearancesDays": [ 3 ], "description": "Chierico Firbolg" },
+                "Ruth": { "id": "ruth", "name": "Ruth", "race": "Umano", "class": "Paladino", "status": "PNG Secondario", "appearancesDays": [ 3 ], "description": "Vecchio paladino ex-avventuriero compagno di Lord Garli" },
+                "Olidam": { "id": "olidam", "name": "Olidam", "race": "Halfling", "class": "Ladro", "status": "Alleato", "appearancesDays": [ 3 ], "description": "Misterioso mezz’uomo..." }
             },
+            // I tuoi dati delle locations
             "locations": {
                 "Elysium": { "id": "elysium", "name": "Elysium", "type": "", "description": "Piano di nascita di Zoltab", "appearancesDays": [ 1 ] },
                 "Holran": { "id": "holran", "name": "Holran", "type": "Città", "description": "Prima città visitata nel Piano Materiale", "appearancesDays": [ 2, 3 ] },
+                "Augen": { "id": "augen", "name": "Augen", "type": "Città", "description": "Città dotata di cerchi di teletrasporto", "appearancesDays": [ 3 ] },
                 "Saingol": { "id": "saingol", "name": "Saingol", "type": "Città", "description": "Capitale del Regno di Nielwenward", "appearancesDays": [ 3 ] }
             },
             "organizations": {
@@ -471,17 +477,16 @@ class CampaignManager {
         };
 
         this.timeline = initialData.timeline;
-        this.characters = new Map(Object.entries(initialData.characters));
+        // La chiave della Map DEVE corrispondere al nome usato nella timeline (es. "Zoltab")
+        this.characters = new Map(Object.entries(initialData.characters)); 
         this.locations = new Map(Object.entries(initialData.locations));
         this.organizations = new Map(Object.entries(initialData.organizations));
-        // Imposto il giorno 3 come attivo
-        this.activeDayId = initialData.timeline[2].id;
+        // Imposta l'ultimo giorno come attivo per mostrare subito i dettagli
+        this.activeDayId = initialData.timeline[initialData.timeline.length - 1].id;
     }
     
-    // Mostra i dettagli di un'entità (Personaggio, Luogo, Missione...)
     showEntityDetails(name, type) {
-        // Implementazione futura per mostrare i dettagli dell'entità
-        console.log(`Mostra dettagli per ${name} (${type}).`);
+        // La logica è ora implementata nel metodo principale.
     }
 }
 

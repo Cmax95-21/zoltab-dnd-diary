@@ -6,6 +6,54 @@
     <title>Diario di Zoltab - Campagna D&D</title>
     <link rel="stylesheet" href="style.css" />
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+
+    <style>
+        .day-details-panel {
+            background-color: var(--color-bg-light);
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-top: 2rem;
+            display: flex; /* Utilizzo Flexbox per affiancare testo e associazioni */
+            gap: 2rem;
+        }
+        .day-content-section {
+            flex-basis: 70%;
+        }
+        .day-associations-grid {
+            flex-basis: 30%;
+            display: grid;
+            gap: 1rem;
+        }
+        .entity-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1.5rem;
+            margin-top: 1rem;
+        }
+        .entity-card {
+            min-width: 250px;
+            flex-grow: 1;
+            background: var(--color-bg-light);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 1rem;
+            border-radius: 4px;
+        }
+        .entity-tag {
+            display: inline-block;
+            padding: 0.3rem 0.6rem;
+            margin: 0.2rem;
+            border-radius: 4px;
+            font-size: 0.9em;
+            background: var(--color-secondary);
+            color: var(--color-bg);
+        }
+        .entity-link {
+            cursor: pointer;
+            font-weight: bold;
+            text-decoration: underline;
+            color: var(--color-primary);
+        }
+    </style>
 </head>
 <body>
     <header class="header">
@@ -36,15 +84,40 @@
             <nav class="nav-tabs">
                 <button class="nav-tab active" data-tab="timeline">Timeline</button>
                 <button class="nav-tab" data-tab="characters">Personaggi</button>
+                <button class="nav-tab" data-tab="locations">Luoghi</button>
+                <button class="nav-tab" data-tab="quests">Missioni</button>
+                <button class="nav-tab" data-tab="organizations">Organizzazioni</button>
+                <button class="nav-tab" data-tab="map">Mappa</button>
                 <button class="nav-tab" data-tab="session">Nuova Sessione</button>
-                </nav>
+            </nav>
 
             <section id="timeline" class="tab-content active">
                 <div id="timelineContainer" class="timeline-container"></div>
+                
+                <div id="dayDetailsPanel" class="day-details-panel">
+                    <p>Clicca su un giorno della Timeline per vedere i dettagli.</p>
+                </div>
             </section>
 
             <section id="characters" class="tab-content">
                 <div id="charactersList"></div>
+            </section>
+            
+            <section id="locations" class="tab-content">
+                <div id="locationsList"></div>
+            </section>
+            
+            <section id="quests" class="tab-content">
+                <div id="questsList"></div>
+            </section>
+            
+            <section id="organizations" class="tab-content">
+                <div id="organizationsList"></div>
+            </section>
+            
+            <section id="map" class="tab-content">
+                <input type="file" id="mapUpload" accept="image/*" />
+                <div id="mapContainer" class="map-container"></div>
             </section>
             
             <section id="session" class="tab-content">
@@ -52,8 +125,10 @@
                 <button id="sessionParseButton" class="btn btn--primary">Analizza Sessione</button>
                 <div id="sessionParseResults"></div> 
             </section>
+
         </div>
     </main>
+
     <script src="app.js"></script>
 </body>
 </html>

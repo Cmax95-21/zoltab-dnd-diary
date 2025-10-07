@@ -247,7 +247,6 @@ class CampaignManager {
         // Mostra i dettagli dell'ultimo giorno per default o del giorno attivo
         const idToDisplay = this.activeDayId || (this.timeline.length > 0 ? this.timeline[this.timeline.length - 1].id : null);
         if (idToDisplay) {
-            // Chiamata intenzionale a showDayDetails solo all'interno di renderTimeline
             this.showDayDetails(idToDisplay);
         }
     }
@@ -326,13 +325,12 @@ class CampaignManager {
         container.appendChild(grid);
     }
     
-    // CORREZIONE CRITICA: Rimosso this.renderTimeline() per evitare il loop.
     showDayDetails(dayId) {
         const day = this.timeline.find(d => d.id === dayId);
         if (!day) return;
         this.activeDayId = dayId;
         
-        // Aggiorna lo stato "active" della timeline senza ricorsione
+        // Aggiorna lo stato "active" della timeline in modo non ricorsivo
         document.querySelectorAll('.timeline-day').forEach(item => {
              item.classList.remove('active');
              if (item.dataset.dayId == dayId) {
@@ -343,7 +341,6 @@ class CampaignManager {
         const detailsContainer = document.getElementById('dayDetailsPanel'); 
         if (!detailsContainer) return;
         
-        // Gestione array sicura per evitare l'errore "is not iterable"
         const characters = day.characters || [];
         const locations = day.locations || [];
         const events = day.events || [];
@@ -449,16 +446,11 @@ class CampaignManager {
 
     initializeDefaultData() {
         const initialData = {
-            // I tuoi dati della timeline Giorno 1, 2, 3
             "timeline": [
-                // Giorno 1
                 { "id": 1, "day": 1, "title": "L'Inizio della Mia Nuova Via", "content": "Io, Zoltab, sono nato sotto il segno della luce nei Campi Benedetti dell’Elysium...", "characters": ["Zoltab"], "locations": ["Elysium"], "events": ["Nascita", "Esilio", "Massacro"], "active": true, "organizations": [] },
-                // Giorno 2
                 { "id": 2, "day": 2, "title": "Il Piano Materiale", "content": "Attraverso un portale, arrivai al Piano Materiale, un luogo di caos...", "characters": ["Zoltab", "Grass", "Lord Garli"], "locations": ["Holran", "Regno di Nielwenward "], "events": ["Attraversamento portale", "Primo contatto con la città di Holran"], "active": true, "organizations": [] },
-                // Giorno 3
                 { "id": 3, "day": 3, "title": "Un Nuovo Compito e un'Offerta di Alleanza", "content": "Il mattino seguente mi presentai a Lord Garli nella sua villa con giardino curato...", "events": ["Accettata la missione di Garli per ritrovare Shanas", "Incontro con Alber e Crowlei"], "characters": ["Zoltab", "Alber", "Lord Garli", "Crowlei", "Ruth", "Olidam"], "locations": ["Holran", "Augen", "Saingol"], "organizations": ["Compagnia della Bilancia"], "active": true }
             ],
-            // I tuoi dati dei personaggi
             "characters": {
                 "Zoltab": { "id": "zoltab", "name": "Zoltab", "race": "Aasimar", "class": "Paladino della Conquista", "status": "Protagonista", "description": "Nato nell'Elysium, ora fondatore dell'Ordine Cinereo", "appearancesDays": [ 1, 2, 3 ] },
                 "Grass": { "id": "grass", "name": "Grass", "race": "Umano", "class": "Locandiere", "status": "Alleato", "appearancesDays": [ 2 ], "description": "Proprietario della taverna Fiasco Frisco" },
@@ -468,7 +460,6 @@ class CampaignManager {
                 "Ruth": { "id": "ruth", "name": "Ruth", "race": "Umano", "class": "Paladino", "status": "PNG Secondario", "appearancesDays": [ 3 ], "description": "Vecchio paladino ex-avventuriero compagno di Lord Garli" },
                 "Olidam": { "id": "olidam", "name": "Olidam", "race": "Halfling", "class": "Ladro", "status": "Alleato", "appearancesDays": [ 3 ], "description": "Misterioso mezz’uomo..." }
             },
-            // I tuoi dati delle locations
             "locations": {
                 "Elysium": { "id": "elysium", "name": "Elysium", "type": "", "description": "Piano di nascita di Zoltab", "appearancesDays": [ 1 ] },
                 "Holran": { "id": "holran", "name": "Holran", "type": "Città", "description": "Prima città visitata nel Piano Materiale", "appearancesDays": [ 2, 3 ] },

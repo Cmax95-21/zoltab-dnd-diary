@@ -41,6 +41,7 @@ class CampaignManager {
             }
         } catch (err) {
             console.error("Errore durante il caricamento dei dati:", err);
+            // Se c'è un errore grave, usa i dati di default
             this.initializeDefaultData();
         }
     }
@@ -65,26 +66,32 @@ class CampaignManager {
     // --- 2. GESTIONE INTERATTIVITÀ ---
 
     attachEventListeners() {
-        // Toggle modalità Master/Giocatore
-        document.getElementById('modeToggle').addEventListener('click', () => {
-            const newMode = !this.isMasterMode;
-            this.toggleMasterMode(newMode);
-            document.getElementById('modeText').textContent = newMode ? 'Master' : 'Giocatore';
-        });
-
-        // Pulsante Salva 
-        document.getElementById('saveChanges').addEventListener('click', () => {
-             this.saveData();
-        });
+        const modeToggle = document.getElementById('modeToggle');
+        if (modeToggle) {
+             modeToggle.addEventListener('click', () => {
+                const newMode = !this.isMasterMode;
+                this.toggleMasterMode(newMode);
+                document.getElementById('modeText').textContent = newMode ? 'Master' : 'Giocatore';
+            });
+        }
+       
+        const saveChanges = document.getElementById('saveChanges');
+        if (saveChanges) {
+             saveChanges.addEventListener('click', () => {
+                 this.saveData();
+             });
+        }
         
-        // Pulsante analizza sessione
-        document.getElementById('sessionParseButton').addEventListener('click', () => {
-            const textarea = document.getElementById('sessionInput');
-            const text = textarea.value;
-            this.currentSessionText = text; 
-            const suggestions = this.parseSessionText(text);
-            this.confirmAssociations(suggestions);
-        });
+        const parseButton = document.getElementById('sessionParseButton');
+        if (parseButton) {
+            parseButton.addEventListener('click', () => {
+                const textarea = document.getElementById('sessionInput');
+                const text = textarea.value;
+                this.currentSessionText = text; 
+                const suggestions = this.parseSessionText(text);
+                this.confirmAssociations(suggestions);
+            });
+        }
         
         // Eventi per tab
         document.querySelectorAll('.nav-tab').forEach(tab => {
@@ -94,7 +101,15 @@ class CampaignManager {
                 e.target.classList.add('active');
                 
                 document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-                document.getElementById(tabName).classList.add('active');
+                
+                const contentElement = document.getElementById(tabName);
+                if (contentElement) {
+                    contentElement.classList.add('active');
+                }
+                
+                // Forzo il rendering se si va in Personaggi/Timeline
+                if (tabName === 'characters') this.renderCharacters();
+                if (tabName === 'timeline') this.renderTimeline();
             });
         });
     }
@@ -106,18 +121,19 @@ class CampaignManager {
     
     // --- 3. LOGICA DI PARSING & INSERIMENTO (Placeholder Semplificato) ---
     
-    // NOTA: Qui andrebbe la logica Regex completa come analizzato in precedenza.
     parseSessionText(text) {
         // Placeholder: in un'app funzionante, questo userebbe Regex.
         const suggestions = { characters: new Set(), locations: new Set(), organizations: new Set(), missions: new Set() };
-        // Simula il risultato del parsing
-        if (text.includes("Zoltab")) suggestions.characters.add("Zoltab");
-        if (text.includes("Holran")) suggestions.locations.add("Holran");
+        // Simula il risultato del parsing basato su nomi noti
+        if (text.toLowerCase().includes("zoltab")) suggestions.characters.add("Zoltab");
+        if (text.toLowerCase().includes("holran")) suggestions.locations.add("Holran");
         return suggestions;
     }
 
     confirmAssociations(suggestions) {
         const container = document.getElementById('sessionParseResults');
+        if (!container) return;
+        
         container.innerHTML = '<h4>Associazioni Trovate:</h4>';
 
         const confirmBtn = document.createElement('button');
@@ -125,21 +141,19 @@ class CampaignManager {
         confirmBtn.classList.add('btn', 'btn--primary');
         
         confirmBtn.addEventListener('click', () => {
-             // In una versione reale, qui si raccolgono le checkbox. Usiamo i suggerimenti trovati.
              this.applyAssociations({ 
                  characters: Array.from(suggestions.characters), 
                  locations: Array.from(suggestions.locations), 
                  missions: [], organizations: [], events: [] 
              }); 
              document.getElementById('sessionParseResults').innerHTML = '';
-             document.getElementById('sessionInput').value = ''; 
+             const textarea = document.getElementById('sessionInput');
+             if (textarea) textarea.value = '';
         });
         container.appendChild(confirmBtn);
     }
 
     applyAssociations(selected) {
-        // Crea entità e assegna riferimenti bidirezionali (Logica omessa per brevità)
-        
         const newDayId = Date.now(); // ID univoco
         const newDay = {
             id: newDayId, 
@@ -148,7 +162,7 @@ class CampaignManager {
             content: this.currentSessionText || '',
             characters: selected.characters, 
             locations: selected.locations, 
-            events: selected.events || [], // Aggiungiamo eventi
+            events: selected.events || [], 
             organizations: selected.organizations || [],
             active: true,
         };
@@ -156,15 +170,16 @@ class CampaignManager {
 
         // Aggiorna i personaggi esistenti con la nuova apparizione
         selected.characters.forEach(name => {
-            const char = this.characters.get(name);
+            let char = this.characters.get(name);
             if (char) {
                 if (!char.appearancesDays) char.appearancesDays = [];
                 char.appearancesDays.push(newDay.day);
-                this.characters.set(name, char);
             } else {
                  // Aggiungi un nuovo personaggio se non esiste
                  this.addNewEntity('character', { name: name, appearancesDays: [newDay.day] });
+                 char = this.characters.get(name); // Rileggo l'oggetto creato
             }
+            if (char) this.characters.set(name, char); // Aggiorno la Map
         });
 
         this.saveData();
@@ -172,15 +187,24 @@ class CampaignManager {
     }
 
     addNewEntity(type, data) {
-        const id = data.name.toLowerCase().replace(/\s/g, '-');
-        const newEntity = Object.assign({ id }, data);
+        // Crea una chiave uniforme
+        const nameKey = data.name;
+
+        // Dati minimi di default per la nuova entità
+        const newEntity = Object.assign({ 
+            id: nameKey.toLowerCase().replace(/\s/g, '-'), 
+            race: 'Sconosciuta', 
+            class: 'N.D.', 
+            description: 'Aggiungere descrizione...',
+            appearancesDays: [],
+        }, data);
 
         switch (type) {
             case 'character':
-                this.characters.set(data.name, newEntity);
+                this.characters.set(nameKey, newEntity);
                 break;
             case 'location':
-                this.locations.set(data.name, newEntity);
+                this.locations.set(nameKey, newEntity);
                 break;
             // ... altri tipi
         }
@@ -197,14 +221,18 @@ class CampaignManager {
         });
     }
     
-    // Implementazione del rendering della timeline e del click per i dettagli
     renderTimeline() {
         const container = document.getElementById('timelineContainer');
+        if (!container) return;
+        
         container.innerHTML = '';
         
-        this.timeline.forEach((day, index) => {
+        this.timeline.forEach((day) => {
             const dayItem = document.createElement('div');
             dayItem.classList.add('timeline-day');
+            if (day.id === this.activeDayId) {
+                 dayItem.classList.add('active'); // Stile per il giorno selezionato
+            }
             dayItem.dataset.dayId = day.id; 
             
             const dayLabel = document.createElement('span');
@@ -229,10 +257,9 @@ class CampaignManager {
         }
     }
 
-    // Implementazione del riordino con SortableJS
     initializeSortableTimeline() {
         const timelineContainer = document.getElementById('timelineContainer');
-        if (!timelineContainer) return;
+        if (!timelineContainer || typeof Sortable === 'undefined') return;
 
         if (this.sortableInstance) this.sortableInstance.destroy();
 
@@ -249,7 +276,6 @@ class CampaignManager {
         });
     }
 
-    // Metodo per aggiornare l'array dopo il Drag & Drop
     reorderTimeline(oldIndex, newIndex) {
         if (oldIndex === newIndex) return;
         
@@ -266,12 +292,13 @@ class CampaignManager {
         this.renderTimeline(); 
     }
     
-    // Implementazione del rendering delle schede personaggi (come da screenshot)
     renderCharacters() {
         const container = document.getElementById('charactersList');
+        if (!container) return;
+        
         container.innerHTML = ''; 
         
-        // Usiamo un container per le schede per migliorare lo stile (necessita di CSS per 'entity-grid')
+        // Usiamo un container per le schede per replicare lo stile dell'app
         const grid = document.createElement('div');
         grid.classList.add('entity-grid'); 
 
@@ -314,7 +341,7 @@ class CampaignManager {
         container.appendChild(grid);
     }
     
-    // Implementazione del pannello di dettaglio della giornata (come da screenshot)
+    // CORREZIONE CRITICA PER L'ERRORE "is not iterable"
     showDayDetails(dayId) {
         const day = this.timeline.find(d => d.id === dayId);
         if (!day) return;
@@ -326,9 +353,15 @@ class CampaignManager {
             return;
         }
         
+        // Assegnazione sicura con fallback a array vuoto per evitare l'errore "is not iterable"
+        const characters = day.characters || [];
+        const locations = day.locations || [];
+        const events = day.events || [];
+        const organizations = day.organizations || [];
+        
         let detailHTML = `
             <div class="day-detail-header">
-                <h2>${day.title}</h2>
+                <h2>Giorno ${day.day}: ${day.title}</h2>
                 <button class="btn btn--small">✏️ Modifica</button>
             </div>
         `;
@@ -337,12 +370,9 @@ class CampaignManager {
         let content = day.content;
         
         // Evidenzia e rende interattivi i nomi delle entità nel testo
-        const allEntities = [...day.characters, ...day.locations, ...day.organizations];
+        const allEntities = [...characters, ...locations, ...organizations];
         allEntities.forEach(name => {
-            // Sostituzione con una funzione di callback per gestire la classe CSS
-            const type = day.characters.includes(name) ? 'entity-character' : 'entity-location'; // Semplificato
-            
-            // Usa una regex per evitare di sostituire parti di parole
+            const type = characters.includes(name) ? 'entity-character' : 'entity-location';
             content = content.replace(new RegExp(`\\b${name}\\b`, 'gi'), `<span class="entity-link ${type}">${name}</span>`);
         });
 
@@ -356,19 +386,21 @@ class CampaignManager {
         // --- 2. Sezione Riferimenti (Box a Destra) ---
         detailHTML += `
             <div class="day-associations-grid">
-                ${this.createAssocBox('Personaggi', day.characters, 'tag-char')}
-                ${this.createAssocBox('Luoghi', day.locations, 'tag-loc')}
-                ${this.createAssocBox('Eventi', day.events, 'tag-event')}
-                ${this.createAssocBox('Organizzazioni', day.organizations, 'tag-org')}
+                ${this.createAssocBox('Personaggi', characters, 'tag-char')}
+                ${this.createAssocBox('Luoghi', locations, 'tag-loc')}
+                ${this.createAssocBox('Eventi', events, 'tag-event')}
+                ${this.createAssocBox('Organizzazioni', organizations, 'tag-org')}
             </div>
         `;
 
         detailsContainer.innerHTML = detailHTML;
+        this.renderTimeline(); // Rirenderizza la timeline per aggiornare la classe 'active'
     }
     
-    // Metodo helper per creare i box di associazione
+    // CORREZIONE CRITICA PER L'ERRORE "is not iterable"
     createAssocBox(title, items, tagClass) {
-        if (!items || items.length === 0) return '';
+        // Gestione sicura: se items non è un array o è vuoto, restituisce stringa vuota
+        if (!items || !Array.isArray(items) || items.length === 0) return '';
         
         const tags = items.map(name => `<span class="entity-tag ${tagClass}">${name}</span>`).join('');
         
@@ -380,22 +412,80 @@ class CampaignManager {
         `;
     }
 
-    // --- 5. METODI PLACEHOLDER ---
+    // --- 5. DATI DI DEFAULT ---
 
-    // Dati di default iniziali (per non iniziare con una app vuota)
     initializeDefaultData() {
-        this.timeline = [
-            { id: 1, day: 1, title: 'Inizio Campagna', content: 'Inizio della grande avventura.', characters: ['Zoltab'], locations: ['Elysium'], active: true }
-        ];
-        this.addNewEntity('character', { name: 'Zoltab', race: 'Aasimar', class: 'Paladino', description: 'Eroe/Antagonista principale', appearancesDays: [1] });
+        const initialData = {
+            "timeline": [
+                {
+                  "id": 1,
+                  "day": 1,
+                  "title": "L'Inizio della Mia Nuova Via",
+                  "content": "Io, Zoltab, sono nato sotto il segno della luce nei Campi Benedetti dell’Elysium, nello strato di Amoria... [continua nel file originale]",
+                  "characters": ["Zoltab"],
+                  "locations": ["Elysium"],
+                  "events": ["Nascita", "Esilio", "Massacro"],
+                  "active": true,
+                  "organizations": []
+                },
+                {
+                  "id": 2,
+                  "day": 2,
+                  "title": "Il Piano Materiale",
+                  "content": "Attraverso un portale, arrivai al Piano Materiale, un luogo di caos e varietà razziale...",
+                  "characters": ["Zoltab", "Grass", "Lord Garli"],
+                  "locations": ["Holran", "Regno di Nielwenward ", "Impero Kalissiano "],
+                  "events": ["Attraversamento portale", "Primo contatto con la città di Holran"],
+                  "active": true,
+                  "organizations": []
+                },
+                {
+                  "id": 3,
+                  "day": 3,
+                  "title": "Un Nuovo Compito e un'Offerta di Alleanza",
+                  "content": "Il mattino seguente mi presentai a Lord Garli nella sua villa con giardino curato. Mi offrì un’alleanza per cercare il figlio scomparso, Shanas...",
+                  "events": ["Accettata la missione di Garli per ritrovare Shanas", "Incontro con Alber e Crowlei"],
+                  "characters": ["Zoltab", "Alber", "Lord Garli", "Crowlei", "Ruth", "Olidam"],
+                  "locations": ["Holran", "Augen", "Saingol"],
+                  "organizations": ["Compagnia della Bilancia"],
+                  "active": true
+                }
+            ],
+            "characters": {
+                "Zoltab": { "id": "zoltab", "name": "Zoltab", "race": "Aasimar", "class": "Paladino della Conquista", "status": "Protagonista", "description": "Nato nell'Elysium, ora fondatore dell'Ordine Cinereo", "appearancesDays": [ 1, 2, 3 ], "avatar": null },
+                "Grass": { "id": "grass", "name": "Grass", "race": "Umano", "class": "Locandiere", "status": "Alleato", "appearancesDays": [ 2 ], "description": "Proprietario della taverna Fiasco Frisco", "avatar": null },
+                "Alber": { "id": "alber", "name": "Alber", "race": "Satiro", "class": "Warlock", "status": "Alleato", "appearancesDays": [ 3 ], "description": "Satiro della Selva Fatata", "avatar": null },
+                "Lord Garli": { "id": "lord-garli", "name": "Lord Garli", "race": "Umano", "class": "", "status": "PNG Importante", "appearancesDays": [ 2, 3 ], "description": "Vecchio umano, ex-avventuriero...", "avatar": null },
+                "Crowlei": { "id": "crowlei", "name": "Crowlei", "race": "Firbolg", "class": "Chierico", "status": "Alleato", "appearancesDays": [ 3 ], "description": "Chierico Firbolg", "avatar": null },
+                "Ruth": { "id": "ruth", "name": "Ruth", "race": "Umano", "class": "Paladino", "status": "PNG Secondario", "appearancesDays": [ 3 ], "description": "Vecchio paladino ex-avventuriero...", "avatar": null },
+                "Olidam": { "id": "olidam", "name": "Olidam", "race": "Halfling", "class": "Ladro", "status": "Alleato", "appearancesDays": [ 3 ], "description": "Misterioso mezz’uomo...", "avatar": null }
+            },
+            "locations": {
+                "Elysium": { "id": "elysium", "name": "Elysium", "type": "", "description": "Piano di nascita di Zoltab", "appearancesDays": [ 1 ] },
+                "Holran": { "id": "holran", "name": "Holran", "type": "Città", "description": "Prima città visitata nel Piano Materiale", "appearancesDays": [ 2, 3 ] },
+                "Saingol": { "id": "saingol", "name": "Saingol", "type": "Città", "description": "Capitale del Regno di Nielwenward", "appearancesDays": [ 3 ] }
+            },
+            "organizations": {
+                 "Compagnia della Bilancia": { "id": "compagnia-della-bilancia", "name": "Compagnia della Bilancia", "type": "Compagnia", "attitude": "Sconosciuto", "description": "Spedizione che aveva assunto Shanas come traduttore." }
+            }
+        };
+
+        this.timeline = initialData.timeline;
+        this.characters = new Map(Object.entries(initialData.characters));
+        this.locations = new Map(Object.entries(initialData.locations));
+        this.organizations = new Map(Object.entries(initialData.organizations));
+        // Imposto il giorno 3 come attivo
+        this.activeDayId = initialData.timeline[2].id;
     }
     
     // Mostra i dettagli di un'entità (Personaggio, Luogo, Missione...)
     showEntityDetails(name, type) {
+        // Implementazione futura per mostrare i dettagli dell'entità
         console.log(`Mostra dettagli per ${name} (${type}).`);
-        // Qui si aprirebbe una modale o un pannello laterale con tutti i dettagli
     }
 }
 
 // Inizializza l'applicazione al caricamento della pagina
-const app = new CampaignManager();
+window.onload = () => {
+    const app = new CampaignManager();
+};

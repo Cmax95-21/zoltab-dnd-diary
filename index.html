@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Diario di Zoltab - Campagna D&D</title>
+    <link rel="stylesheet" href="style.css" />
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+</head>
+<body>
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <h1 class="header-title">Diario di Zoltab</h1>
+                <div class="header-controls">
+                    <div class="user-mode-toggle">
+                        <span class="mode-label">Modalità:</span>
+                        <button id="modeToggle" class="btn btn--secondary">
+                            <span id="modeText">Giocatore</span>
+                        </button>
+                    </div>
+                    <button id="saveChanges" class="btn btn--primary master-only hidden">
+                        Salva Modifiche
+                        <span id="unsavedCount" class="unsaved-indicator hidden">0</span>
+                    </button>
+                    <div class="search-container">
+                        <input type="text" id="globalSearch" class="form-control search-input" placeholder="Cerca ovunque..." />
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="main">
+        <div class="container">
+            <nav class="nav-tabs">
+                <button class="nav-tab active" data-tab="timeline">Timeline</button>
+                <button class="nav-tab" data-tab="characters">Personaggi</button>
+                <button class="nav-tab" data-tab="session">Nuova Sessione</button>
+                </nav>
+
+            <section id="timeline" class="tab-content active">
+                <div id="timelineContainer" class="timeline-container"></div>
+            </section>
+
+            <section id="characters" class="tab-content">
+                <div id="charactersList"></div>
+            </section>
+            
+            <section id="session" class="tab-content">
+                <textarea id="sessionInput" placeholder="Inserisci il testo della nuova sessione..."></textarea>
+                <button id="sessionParseButton" class="btn btn--primary">Analizza Sessione</button>
+                <div id="sessionParseResults"></div> 
+            </section>
+        </div>
+    </main>
+    <script src="app.js"></script>
+</body>
+</html>

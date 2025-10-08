@@ -1,26 +1,29 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gestione Campagna D&D</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="style.css" />
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
 </head>
 <body>
+    <!-- Nickname Modal -->
     <div id="nicknameModal" class="modal">
         <div class="modal-content">
             <h2>Benvenuto nella Campagna D&D</h2>
             <div class="form-group">
                 <label for="nicknameInput">Inserisci il tuo nickname:</label>
-                <input type="text" id="nicknameInput" placeholder="Il tuo nome..." class="form-control"/>
+                <input type="text" id="nicknameInput" class="form-control" placeholder="Il tuo nome...">
             </div>
             <button id="confirmNickname" class="btn btn--primary">Entra</button>
         </div>
     </div>
 
-    <div id="mainApp" class="hidden">
+    <!-- Main Application -->
+    <div id="mainApp" class="main-app hidden">
+        <!-- Header -->
         <header class="header">
             <div class="header-left">
                 <h1>Gestione Campagna D&D</h1>
@@ -29,18 +32,25 @@
                 </div>
             </div>
             <div class="header-right">
-                <label class="toggle-switch">
-                    <input type="checkbox" id="masterToggle" />
-                    <span class="toggle-slider"></span>
-                    <span class="toggle-label">Modalità Master</span>
-                </label>
+                <div class="mode-toggle">
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="masterToggle">
+                        <span class="toggle-slider"></span>
+                        <span class="toggle-label">Master</span>
+                    </label>
+                </div>
                 <button id="saveBtn" class="btn btn--secondary">Salva</button>
                 <button id="backupBtn" class="btn btn--secondary">Backup</button>
                 <button id="restoreBtn" class="btn btn--secondary">Ripristina</button>
-                <input type="file" id="restoreInput" accept=".json" style="display:none" />
             </div>
         </header>
 
+        <!-- Search Bar -->
+        <div class="search-container">
+            <input type="text" id="globalSearch" class="form-control search-input" placeholder="Cerca in tutta la campagna...">
+        </div>
+
+        <!-- Navigation Tabs -->
         <nav class="nav-tabs">
             <button class="nav-tab active" data-tab="timeline">Timeline</button>
             <button class="nav-tab" data-tab="characters">Personaggi</button>
@@ -48,44 +58,167 @@
             <button class="nav-tab" data-tab="quests">Missioni</button>
             <button class="nav-tab" data-tab="organizations">Organizzazioni</button>
             <button class="nav-tab" data-tab="map">Mappa</button>
-            <button class="nav-tab" data-tab="session">Nuova Sessione</button>
+            <button class="nav-tab" data-tab="newsession">Nuova Sessione</button>
         </nav>
 
-        <section id="timeline" class="tab-content active">
-            <div id="timelineContainer" class="timeline-container"></div>
-        </section>
+        <!-- Content Sections -->
+        <main class="content">
+            <!-- Timeline Tab -->
+            <section id="timeline" class="tab-content active">
+                <div class="section-header">
+                    <h2>Timeline delle Giornate</h2>
+                    <button id="addTimelineBtn" class="btn btn--primary master-only">Aggiungi Giornata</button>
+                </div>
+                <div id="timelineContainer" class="timeline-container"></div>
+            </section>
 
-        <section id="characters" class="tab-content">
-            <div id="charactersList"></div>
-            <button id="addCharacterBtn" class="btn btn--small btn--primary">+ Aggiungi Personaggio</button>
-        </section>
+            <!-- Characters Tab -->
+            <section id="characters" class="tab-content">
+                <div class="section-header">
+                    <h2>Personaggi</h2>
+                    <button id="addCharacterBtn" class="btn btn--primary master-only">Aggiungi Personaggio</button>
+                </div>
+                <div id="charactersContainer" class="cards-container"></div>
+            </section>
 
-        <section id="locations" class="tab-content">
-            <div id="locationsList"></div>
-            <button id="addLocationBtn" class="btn btn--small btn--primary">+ Aggiungi Luogo</button>
-        </section>
+            <!-- Locations Tab -->
+            <section id="locations" class="tab-content">
+                <div class="section-header">
+                    <h2>Luoghi</h2>
+                    <button id="addLocationBtn" class="btn btn--primary master-only">Aggiungi Luogo</button>
+                </div>
+                <div id="locationsContainer" class="cards-container"></div>
+            </section>
 
-        <section id="quests" class="tab-content">
-            <div id="questsList"></div>
-            <button id="addQuestBtn" class="btn btn--small btn--primary">+ Aggiungi Missione</button>
-        </section>
+            <!-- Quests Tab -->
+            <section id="quests" class="tab-content">
+                <div class="section-header">
+                    <h2>Missioni</h2>
+                    <button id="addQuestBtn" class="btn btn--primary master-only">Aggiungi Missione</button>
+                </div>
+                <div id="questsContainer" class="cards-container"></div>
+            </section>
 
-        <section id="organizations" class="tab-content">
-            <div id="organizationsList"></div>
-            <button id="addOrganizationBtn" class="btn btn--small btn--primary">+ Aggiungi Organizzazione</button>
-        </section>
+            <!-- Organizations Tab -->
+            <section id="organizations" class="tab-content">
+                <div class="section-header">
+                    <h2>Organizzazioni</h2>
+                    <button id="addOrganizationBtn" class="btn btn--primary master-only">Aggiungi Organizzazione</button>
+                </div>
+                <div id="organizationsContainer" class="cards-container"></div>
+            </section>
 
-        <section id="map" class="tab-content">
-            <input type="file" id="mapUpload" accept="image/*" />
-            <div id="mapContainer" class="map-container"></div>
-        </section>
+            <!-- Map Tab -->
+            <section id="map" class="tab-content">
+                <div class="section-header">
+                    <h2>Mappa</h2>
+                    <div class="map-controls master-only">
+                        <input type="file" id="mapUpload" accept="image/*" class="hidden">
+                        <button id="uploadMapBtn" class="btn btn--primary">Carica Mappa</button>
+                        <button id="downloadMapBtn" class="btn btn--secondary">Scarica Mappa</button>
+                    </div>
+                </div>
+                <div id="mapContainer" class="map-container">
+                    <div class="map-placeholder">Nessuna mappa caricata</div>
+                </div>
+            </section>
 
-        <section id="session" class="tab-content">
-            <textarea id="sessionInput" placeholder="Inserisci il testo della nuova sessione..."></textarea>
-            <button id="sessionParseButton" class="btn btn--primary">Analizza Sessione</button>
-            <div id="sessionParseResults"></div>
-        </section>
+            <!-- New Session Tab -->
+            <section id="newsession" class="tab-content">
+                <div class="section-header">
+                    <h2>Nuova Sessione</h2>
+                    <button id="parseSessionBtn" class="btn btn--primary master-only">Analizza Testo</button>
+                </div>
+                <div class="session-form">
+                    <div class="form-group">
+                        <label for="sessionTitle">Titolo Sessione</label>
+                        <input type="text" id="sessionTitle" class="form-control" placeholder="Titolo della sessione...">
+                    </div>
+                    <div class="form-group">
+                        <label for="sessionContent">Contenuto Sessione</label>
+                        <textarea id="sessionContent" class="form-control session-textarea" placeholder="Descrivi quello che è successo nella sessione..."></textarea>
+                    </div>
+                </div>
+                <div id="parseResults" class="parse-results hidden"></div>
+            </section>
+        </main>
     </div>
+
+    <!-- Entity Modal (for CRUD operations) -->
+    <div id="entityModal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="entityModalTitle">Aggiungi Entità</h3>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="entityForm">
+                    <div class="form-group">
+                        <label for="entityName">Nome</label>
+                        <input type="text" id="entityName" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="entityDescription">Descrizione</label>
+                        <textarea id="entityDescription" class="form-control"></textarea>
+                    </div>
+                    <div id="additionalFields"></div>
+                    <div class="form-group" id="avatarUploadGroup">
+                        <label for="avatarUpload">Avatar</label>
+                        <input type="file" id="avatarUpload" accept="image/*">
+                        <div id="avatarPreview" class="avatar-preview"></div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button id="cancelEntity" class="btn btn--secondary">Annulla</button>
+                <button id="saveEntity" class="btn btn--primary">Salva</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Confirmation Modal -->
+    <div id="confirmModal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Conferma</h3>
+            </div>
+            <div class="modal-body">
+                <p id="confirmMessage">Sei sicuro di voler procedere?</p>
+            </div>
+            <div class="modal-footer">
+                <button id="cancelConfirm" class="btn btn--secondary">Annulla</button>
+                <button id="confirmAction" class="btn btn--primary">Conferma</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Parse Results Modal -->
+    <div id="parseModal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Entità Rilevate</h3>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p>Le seguenti entità sono state rilevate nel testo:</p>
+                <div id="parseResultsList"></div>
+            </div>
+            <div class="modal-footer">
+                <button id="cancelParse" class="btn btn--secondary">Annulla</button>
+                <button id="confirmParse" class="btn btn--primary">Conferma e Crea</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Spinner -->
+    <div id="loadingSpinner" class="loading-spinner hidden">
+        <div class="spinner"></div>
+        <p>Sincronizzazione in corso...</p>
+    </div>
+
+    <!-- Hidden file input for restore -->
+    <input type="file" id="restoreFileInput" accept=".json" class="hidden">
+
     <script type="module" src="app.js"></script>
 </body>
 </html>

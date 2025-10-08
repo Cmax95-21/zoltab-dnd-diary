@@ -1266,3 +1266,4 @@ const campaignManager = new CampaignManager();
 // Make it globally available for onclick handlers
 window.campaignManager = campaignManager;
 
+

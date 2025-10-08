@@ -1,80 +1,91 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Gestione Campagna D&D</title>
-  <link rel="stylesheet" href="style.css" />
-  <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Gestione Campagna D&D</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="style.css" />
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
 </head>
 <body>
-  <div id="nicknameModal" class="modal">
-    <div class="modal-content">
-      <h2>Benvenuto nella Campagna D&D</h2>
-      <div class="form-group">
-        <label for="nicknameInput">Il tuo nickname:</label>
-        <input type="text" id="nicknameInput" placeholder="Inserisci il tuo nome" />
-      </div>
-      <button id="joinCampaign" class="btn btn--primary">Unisciti alla Campagna</button>
-    </div>
-  </div>
-  <header class="header">
-    <div class="container">
-      <div class="header-content">
-        <h1>Gestione Campagna D&D</h1>
-        <div class="header-controls">
-          <span id="currentUser" class="user-badge"></span>
-          <label for="masterMode" class="mode-label">
-            <input type="checkbox" id="masterMode" class="mode-checkbox" />
-            Modalità Master
-          </label>
-          <button id="saveBtn" class="btn btn--primary">Salva</button>
-          <button id="backupBtn" class="btn btn--secondary">Backup</button>
-          <input id="restoreInput" type="file" accept=".json" style="display:none" />
-          <button id="restoreBtn" class="btn btn--secondary">Ripristina</button>
+    <div id="nicknameModal" class="modal">
+        <div class="modal-content">
+            <h2>Benvenuto nella Campagna D&D</h2>
+            <div class="form-group">
+                <label for="nicknameInput">Inserisci il tuo nickname:</label>
+                <input type="text" id="nicknameInput" placeholder="Il tuo nome..." class="form-control"/>
+            </div>
+            <button id="confirmNickname" class="btn btn--primary">Entra</button>
         </div>
-      </div>
     </div>
-  </header>
-  <main class="main-content container">
-    <nav class="nav-tabs">
-      <button class="nav-tab active" data-tab="timeline">Timeline</button>
-      <button class="nav-tab" data-tab="characters">Personaggi</button>
-      <button class="nav-tab" data-tab="locations">Luoghi</button>
-      <button class="nav-tab" data-tab="quests">Missioni</button>
-      <button class="nav-tab" data-tab="organizations">Organizzazioni</button>
-      <button class="nav-tab" data-tab="map">Mappa</button>
-      <button class="nav-tab" data-tab="session">Nuova Sessione</button>
-    </nav>
-    <section id="timeline" class="tab-content active">
-      <div id="timelineContainer" class="timeline-container"></div>
-    </section>
-    <section id="characters" class="tab-content">
-      <div id="charactersList"></div>
-      <button id="addCharacterBtn" class="btn btn--small btn--primary">+ Aggiungi Personaggio</button>
-    </section>
-    <section id="locations" class="tab-content">
-      <div id="locationsList"></div>
-      <button id="addLocationBtn" class="btn btn--small btn--primary">+ Aggiungi Luogo</button>
-    </section>
-    <section id="quests" class="tab-content">
-      <div id="questsList"></div>
-      <button id="addQuestBtn" class="btn btn--small btn--primary">+ Aggiungi Missione</button>
-    </section>
-    <section id="organizations" class="tab-content">
-      <div id="organizationsList"></div>
-      <button id="addOrganizationBtn" class="btn btn--small btn--primary">+ Aggiungi Organizzazione</button>
-    </section>
-    <section id="map" class="tab-content">
-      <input type="file" id="mapUpload" accept="image/*" />
-      <div id="mapContainer" class="map-container"></div>
-    </section>
-    <section id="session" class="tab-content">
-      <textarea id="sessionInput" placeholder="Inserisci il testo della nuova sessione..."></textarea>
-      <button id="sessionParseButton" class="btn btn--primary">Analizza Sessione</button>
-      <div id="sessionParseResults"></div>
-    </section>
-  </main>
-  <script src="app.js"></script>
+
+    <div id="mainApp" class="hidden">
+        <header class="header">
+            <div class="header-left">
+                <h1>Gestione Campagna D&D</h1>
+                <div class="user-badge">
+                    <span id="userNickname">Ospite</span>
+                </div>
+            </div>
+            <div class="header-right">
+                <label class="toggle-switch">
+                    <input type="checkbox" id="masterToggle" />
+                    <span class="toggle-slider"></span>
+                    <span class="toggle-label">Modalità Master</span>
+                </label>
+                <button id="saveBtn" class="btn btn--secondary">Salva</button>
+                <button id="backupBtn" class="btn btn--secondary">Backup</button>
+                <button id="restoreBtn" class="btn btn--secondary">Ripristina</button>
+                <input type="file" id="restoreInput" accept=".json" style="display:none" />
+            </div>
+        </header>
+
+        <nav class="nav-tabs">
+            <button class="nav-tab active" data-tab="timeline">Timeline</button>
+            <button class="nav-tab" data-tab="characters">Personaggi</button>
+            <button class="nav-tab" data-tab="locations">Luoghi</button>
+            <button class="nav-tab" data-tab="quests">Missioni</button>
+            <button class="nav-tab" data-tab="organizations">Organizzazioni</button>
+            <button class="nav-tab" data-tab="map">Mappa</button>
+            <button class="nav-tab" data-tab="session">Nuova Sessione</button>
+        </nav>
+
+        <section id="timeline" class="tab-content active">
+            <div id="timelineContainer" class="timeline-container"></div>
+        </section>
+
+        <section id="characters" class="tab-content">
+            <div id="charactersList"></div>
+            <button id="addCharacterBtn" class="btn btn--small btn--primary">+ Aggiungi Personaggio</button>
+        </section>
+
+        <section id="locations" class="tab-content">
+            <div id="locationsList"></div>
+            <button id="addLocationBtn" class="btn btn--small btn--primary">+ Aggiungi Luogo</button>
+        </section>
+
+        <section id="quests" class="tab-content">
+            <div id="questsList"></div>
+            <button id="addQuestBtn" class="btn btn--small btn--primary">+ Aggiungi Missione</button>
+        </section>
+
+        <section id="organizations" class="tab-content">
+            <div id="organizationsList"></div>
+            <button id="addOrganizationBtn" class="btn btn--small btn--primary">+ Aggiungi Organizzazione</button>
+        </section>
+
+        <section id="map" class="tab-content">
+            <input type="file" id="mapUpload" accept="image/*" />
+            <div id="mapContainer" class="map-container"></div>
+        </section>
+
+        <section id="session" class="tab-content">
+            <textarea id="sessionInput" placeholder="Inserisci il testo della nuova sessione..."></textarea>
+            <button id="sessionParseButton" class="btn btn--primary">Analizza Sessione</button>
+            <div id="sessionParseResults"></div>
+        </section>
+    </div>
+    <script type="module" src="app.js"></script>
 </body>
 </html>

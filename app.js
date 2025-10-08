@@ -26,6 +26,7 @@ const firebaseConfig = {
     storageBucket: "dnd-campagna-collaborativa.firebasestorage.app",
     messagingSenderId: "800254099481",
     appId: "1:800254099481:web:e4fc7acd3d2203bff12a88"
+    databaseURL: "https://dnd-campagna-collaborativa-default-rtdb.europe-west1.firebasedatabase.app"
 };
 
 // Initialize Firebase
@@ -1264,3 +1265,4 @@ const campaignManager = new CampaignManager();
 
 // Make it globally available for onclick handlers
 window.campaignManager = campaignManager;
+

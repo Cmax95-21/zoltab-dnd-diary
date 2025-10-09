@@ -23,7 +23,7 @@ const firebaseConfig = {
     apiKey: "AIzaSyAaJUsiPmok_yZfqmpMJ-5fmL6odPWty0s",
     authDomain: "dnd-campagna-collaborativa.firebaseapp.com",
     projectId: "dnd-campagna-collaborativa",
-    storageBucket: "dnd-campagna-collaborativa.firebasestorage.app",
+    storageBucket: "dnd-campagna-collaborativa.appspot.com",
     messagingSenderId: "800254099481",
     appId: "1:800254099481:web:e4fc7acd3d2203bff12a88",
     databaseURL: "https://dnd-campagna-collaborativa-default-rtdb.europe-west1.firebasedatabase.app"
@@ -1265,6 +1265,7 @@ const campaignManager = new CampaignManager();
 
 // Make it globally available for onclick handlers
 window.campaignManager = campaignManager;
+
 
 
 

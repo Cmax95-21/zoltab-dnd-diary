@@ -1,24 +1,15 @@
-// Firebase imports
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
 import { 
-    getDatabase, 
-    ref, 
-    onValue, 
-    set, 
-    push, 
-    update, 
-    remove,
-    off 
+    getDatabase, ref, onValue, set, push, update, remove, off 
 } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js";
 import { 
-    getStorage, 
-    ref as storageRef, 
-    uploadBytes, 
-    getDownloadURL,
-    deleteObject 
+    getStorage, ref as storageRef, uploadBytes, getDownloadURL, deleteObject 
 } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-storage.js";
+import { 
+    getAuth, signInAnonymously, onAuthStateChanged 
+} from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
 
-// Firebase configuration
+// Config
 const firebaseConfig = {
     apiKey: "AIzaSyAaJUsiPmok_yZfqmpMJ-5fmL6odPWty0s",
     authDomain: "dnd-campagna-collaborativa.firebaseapp.com",
@@ -29,22 +20,25 @@ const firebaseConfig = {
     databaseURL: "https://dnd-campagna-collaborativa-default-rtdb.europe-west1.firebasedatabase.app"
 };
 
-// Initialize Firebase
+// Inizializza servizi
 const app = initializeApp(firebaseConfig);
 const database = getDatabase(app);
 const storage = getStorage(app);
+const auth = getAuth(app);
 
-firebase.auth().signInAnonymously()
+// Login anonima
+signInAnonymously(auth)
   .then(() => {
     console.log("Autenticazione anonima riuscita");
   })
-  .catch((error) => {
-    console.error("Errore durante l'autenticazione anonima:", error);
+  .catch(error => {
+    console.error("Errore auth anonima:", error);
   });
 
-firebase.auth().onAuthStateChanged((user) => {
+// UID al login
+onAuthStateChanged(auth, user => {
   if (user) {
-    console.log("UID Firebase:", user.uid); // Questo è l’UID che ti serve
+    console.log("UID Firebase:", user.uid);
   }
 });
 
@@ -1279,6 +1273,7 @@ const campaignManager = new CampaignManager();
 
 // Make it globally available for onclick handlers
 window.campaignManager = campaignManager;
+
 
 
 

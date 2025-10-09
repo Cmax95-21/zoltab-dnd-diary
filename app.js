@@ -34,6 +34,20 @@ const app = initializeApp(firebaseConfig);
 const database = getDatabase(app);
 const storage = getStorage(app);
 
+firebase.auth().signInAnonymously()
+  .then(() => {
+    console.log("Autenticazione anonima riuscita");
+  })
+  .catch((error) => {
+    console.error("Errore durante l'autenticazione anonima:", error);
+  });
+
+firebase.auth().onAuthStateChanged((user) => {
+  if (user) {
+    console.log("UID Firebase:", user.uid); // Questo è l’UID che ti serve
+  }
+});
+
 class CampaignManager {
     constructor() {
         this.currentUser = '';
@@ -1265,6 +1279,7 @@ const campaignManager = new CampaignManager();
 
 // Make it globally available for onclick handlers
 window.campaignManager = campaignManager;
+
 
 
 

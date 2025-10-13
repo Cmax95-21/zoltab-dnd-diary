@@ -1214,35 +1214,50 @@ class CampaignManager {
   }
 
 showEntityDetails(type, id) {
-console.log('DEBUG showEntityDetails called with:', type, id);
+  console.log('DEBUG showEntityDetails called with:', type, id);
+
   const entity = this.data[type][id];
+  console.log('DEBUG entity:', entity);
   if (!entity) return;
+
   const modal = document.getElementById('entityViewModal');
+  console.log('DEBUG modal:', modal);
   if (!modal) return;
 
-  modal.querySelector('.entity-name').textContent = entity.name || entity.title || '';
-  modal.querySelector('.entity-description').textContent = entity.description || entity.content || '';
+  try {
+    const nameNode = modal.querySelector('.entity-name');
+    const descNode = modal.querySelector('.entity-description');
+    const metaNode = modal.querySelector('.entity-meta');
+    const avatarNode = modal.querySelector('.entity-avatar');
+    console.log('DEBUG nodes:', {nameNode, descNode, metaNode, avatarNode});
 
-  let meta = '';
-  if (type === 'characters') {
-    meta = `${entity.race || ''} ${entity.class || ''}`.trim();
-    const avatar = modal.querySelector('.entity-avatar');
-    if (avatar) {
-      if (entity.avatar) {
-        avatar.src = entity.avatar;
-        avatar.style.display = '';
-      } else {
-        avatar.style.display = 'none';
+    if (nameNode) nameNode.textContent = entity.name || entity.title || '';
+    if (descNode) descNode.textContent = entity.description || entity.content || '';
+
+    let meta = '';
+    if (type === 'characters') {
+      meta = `${entity.race || ''} ${entity.class || ''}`.trim();
+      if (avatarNode) {
+        if (entity.avatar) {
+          avatarNode.src = entity.avatar;
+          avatarNode.style.display = '';
+        } else {
+          avatarNode.style.display = 'none';
+        }
       }
+    } else if (type === 'locations' || type === 'organizations') {
+      meta = entity.type || '';
+      if (avatarNode) avatarNode.style.display = 'none';
     }
-  } else if (type === 'locations' || type === 'organizations') {
-    meta = entity.type || '';
-    const avatar = modal.querySelector('.entity-avatar');
-    if (avatar) avatar.style.display = 'none';
-  }
-  modal.querySelector('.entity-meta').textContent = meta;
+    if (metaNode) metaNode.textContent = meta;
+    console.log('DEBUG before remove hidden:', modal.className);
 
-  modal.classList.remove('hidden');
+    modal.classList.remove('hidden');
+    console.log('DEBUG after remove hidden:', modal.className);
+
+  } catch (e) {
+    console.error('DEBUG ERROR in showEntityDetails:', e);
+  }
 }
 
 closeEntityViewModal() {

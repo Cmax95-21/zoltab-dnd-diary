@@ -1493,3 +1493,57 @@ body:not(.master-mode) .master-only {
     visibility: visible;
     opacity: 1;
 }
+
+.day-summary {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid #404060; /* colore simile a bordo modale e card */
+}
+
+.day-summary label {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 4px;
+  color: #74b3ce; /* colore vicino a day-title per coerenza */
+  font-size: 0.9rem;
+}
+
+.summary-textarea {
+  width: 100%;
+  min-height: 60px;
+  resize: vertical;
+  font-family: var(--font-family-base);
+  font-size: 0.9rem;
+  padding: 6px 8px;
+  border-radius: 8px;
+  border: 1px solid #404060;
+  background-color: #2a2a3e; /* colore fondo simile a card background */
+  color: #e0e0e0;
+  box-sizing: border-box;
+  transition: border-color 0.25s ease-in-out;
+}
+
+.summary-textarea:focus {
+  border-color: #7f5af0;
+  outline: none;
+  box-shadow: 0 0 5px rgba(127, 90, 240, 0.5);
+}
+.day-entities-group {
+  margin-top: 8px;
+}
+
+.entities-group-title {
+  font-weight: 600;
+  color: var(--color-primary);
+  margin-bottom: 4px;
+}
+
+.entity-tag.clickable-tag {
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.entity-tag.clickable-tag:hover {
+  background-color: rgba(127, 90, 240, 0.3);
+}
+

@@ -1184,7 +1184,7 @@ class CampaignManager {
         const type = target.dataset.type;
         const id = target.dataset.id;
         if (type && id) {
-          this.showEntityDetails(type, id);
+          this.(type, id);
         }
       });
     });
@@ -1411,6 +1411,7 @@ const campaignManager = new CampaignManager();
 
 // Make it globally available for onclick handlers
 window.campaignManager = campaignManager;
+
 
 
 

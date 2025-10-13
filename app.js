@@ -1184,7 +1184,7 @@ class CampaignManager {
         const type = target.dataset.type;
         const id = target.dataset.id;
         if (type && id) {
-          this.openEntityModal(type, id);
+          this.showEntityModal(type, id);
         }
       });
     });
@@ -1212,6 +1212,42 @@ class CampaignManager {
       this.saveDaySummary(dayId, textarea.value);
     });
   }
+
+showEntityDetails(type, id) {
+  const entity = this.data[type][id];
+  if (!entity) return;
+  const modal = document.getElementById('entityViewModal');
+  if (!modal) return;
+
+  modal.querySelector('.entity-name').textContent = entity.name || entity.title || '';
+  modal.querySelector('.entity-description').textContent = entity.description || entity.content || '';
+
+  let meta = '';
+  if (type === 'characters') {
+    meta = `${entity.race || ''} ${entity.class || ''}`.trim();
+    const avatar = modal.querySelector('.entity-avatar');
+    if (avatar) {
+      if (entity.avatar) {
+        avatar.src = entity.avatar;
+        avatar.style.display = '';
+      } else {
+        avatar.style.display = 'none';
+      }
+    }
+  } else if (type === 'locations' || type === 'organizations') {
+    meta = entity.type || '';
+    const avatar = modal.querySelector('.entity-avatar');
+    if (avatar) avatar.style.display = 'none';
+  }
+  modal.querySelector('.entity-meta').textContent = meta;
+
+  modal.classList.remove('hidden');
+}
+
+closeEntityViewModal() {
+  const modal = document.getElementById('entityViewModal');
+  if (modal) modal.classList.add('hidden');
+}
 
 
     renderCharacters() {
@@ -1375,7 +1411,6 @@ const campaignManager = new CampaignManager();
 
 // Make it globally available for onclick handlers
 window.campaignManager = campaignManager;
-
 
 
 

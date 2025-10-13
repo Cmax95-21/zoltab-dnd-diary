@@ -1077,35 +1077,41 @@ class CampaignManager {
         event.target.value = '';
     }
 
-    enrichTimelineData() {
-    const enrichedTimeline = {};
+    eenrichTimelineData() {
+  const enrichedTimeline = {};
 
-    Object.entries(this.data.timeline).forEach(([dayKey, day]) => {
-      const enrichedChars = (day.characters || []).map(charName => {
-        const foundChar = Object.values(this.data.characters || {}).find(c => c.name === charName);
-        return foundChar ? { id: foundChar.id, name: foundChar.name } : { id: charName, name: charName };
-      });
-
-      const enrichedLocs = (day.locations || []).map(locName => {
-        const foundLoc = Object.values(this.data.locations || {}).find(l => l.name === locName);
-        return foundLoc ? { id: foundLoc.id, name: foundLoc.name } : { id: locName, name: locName };
-      });
-
-      const enrichedOrgs = (day.organizations || []).map(orgName => {
-        const foundOrg = Object.values(this.data.organizations || {}).find(o => o.name === orgName);
-        return foundOrg ? { id: foundOrg.id, name: foundOrg.name } : { id: orgName, name: orgName };
-      });
-
-      enrichedTimeline[dayKey] = {
-        ...day,
-        characters: enrichedChars,
-        locations: enrichedLocs,
-        organizations: enrichedOrgs,
-      };
+  Object.entries(this.data.timeline).forEach(([dayKey, day]) => {
+    const enrichedChars = (day.characters || []).map(charName => {
+      const foundCharEntry = Object.entries(this.data.characters || {}).find(([key, c]) => c.name === charName);
+      const foundCharKey = foundCharEntry ? foundCharEntry[0] : charName;
+      const foundChar = foundCharEntry ? foundCharEntry[1] : { id: charName, name: charName };
+      return { id: foundCharKey, name: foundChar.name };
     });
 
-    this.data.timeline = enrichedTimeline;
-  }
+    const enrichedLocs = (day.locations || []).map(locName => {
+      const foundLocEntry = Object.entries(this.data.locations || {}).find(([key, l]) => l.name === locName);
+      const foundLocKey = foundLocEntry ? foundLocEntry[0] : locName;
+      const foundLoc = foundLocEntry ? foundLocEntry[1] : { id: locName, name: locName };
+      return { id: foundLocKey, name: foundLoc.name };
+    });
+
+    const enrichedOrgs = (day.organizations || []).map(orgName => {
+      const foundOrgEntry = Object.entries(this.data.organizations || {}).find(([key, o]) => o.name === orgName);
+      const foundOrgKey = foundOrgEntry ? foundOrgEntry[0] : orgName;
+      const foundOrg = foundOrgEntry ? foundOrgEntry[1] : { id: orgName, name: orgName };
+      return { id: foundOrgKey, name: foundOrg.name };
+    });
+
+    enrichedTimeline[dayKey] = {
+      ...day,
+      characters: enrichedChars,
+      locations: enrichedLocs,
+      organizations: enrichedOrgs,
+    };
+  });
+
+  this.data.timeline = enrichedTimeline;
+}
     
     renderTimeline() {
         const container = document.getElementById('timelineContainer');

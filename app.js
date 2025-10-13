@@ -1177,18 +1177,35 @@ class CampaignManager {
     }
 
   attachTagClickListeners() {
-    const tags = document.querySelectorAll('.clickable-tag');
-    tags.forEach(tag => {
-      tag.addEventListener('click', e => {
-        const target = e.currentTarget;
-        const type = target.dataset.type;
-        const id = target.dataset.id;
-        if (type && id) {
-          this.showEntityDetails(type, id);
-        }
-      });
+  const tags = document.querySelectorAll('.clickable-tag');
+  tags.forEach(tag => {
+    tag.addEventListener('click', e => {
+      const target = e.currentTarget;
+      const type = target.dataset.type;
+      const id = target.dataset.id;
+      const name = target.textContent.trim();
+
+      if (type && id) {
+        this.openEntityModal(type, id);
+      }
+
+      // Switch tab e scroll sulla card corrispondente
+      if (type && name) {
+        this.switchTab(type);
+        setTimeout(() => {
+          const cards = document.querySelectorAll(`#${type}Container .card-title`);
+          cards.forEach(card => {
+            if (card.textContent.trim() === name) {
+              card.scrollIntoView({behavior: 'smooth', block: 'center'});
+              card.parentElement.classList.add('highlight');
+              setTimeout(() => card.parentElement.classList.remove('highlight'), 1500);
+            }
+          });
+        }, 250);
+      }
     });
-  }
+  });
+}
     
 	loadDaySummary(dayId) {
     const summaryRef = ref(database, `summaries/${dayId}`);

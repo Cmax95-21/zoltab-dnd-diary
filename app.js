@@ -193,6 +193,7 @@ class CampaignManager {
         onValue(timelineRef, (snapshot) => {
             const data = snapshot.val() || {};
             this.data.timeline = data;
+            this.enrichTimelineData();
             this.renderTimeline();
         }, (error) => {
             console.error('Timeline listener error:', error);
@@ -1052,7 +1053,7 @@ class CampaignManager {
             }
             
             // Import data to Firebase
-            const updates = {};
+            const updates = {};container.appendChild(dayElement)
             requiredSections.forEach(section => {
                 if (importData[section]) {
                     updates[section] = importData[section];
@@ -1075,6 +1076,36 @@ class CampaignManager {
         this.hideLoading();
         event.target.value = '';
     }
+
+    enrichTimelineData() {
+    const enrichedTimeline = {};
+
+    Object.entries(this.data.timeline).forEach(([dayKey, day]) => {
+      const enrichedChars = (day.characters || []).map(charName => {
+        const foundChar = Object.values(this.data.characters || {}).find(c => c.name === charName);
+        return foundChar ? { id: foundChar.id, name: foundChar.name } : { id: charName, name: charName };
+      });
+
+      const enrichedLocs = (day.locations || []).map(locName => {
+        const foundLoc = Object.values(this.data.locations || {}).find(l => l.name === locName);
+        return foundLoc ? { id: foundLoc.id, name: foundLoc.name } : { id: locName, name: locName };
+      });
+
+      const enrichedOrgs = (day.organizations || []).map(orgName => {
+        const foundOrg = Object.values(this.data.organizations || {}).find(o => o.name === orgName);
+        return foundOrg ? { id: foundOrg.id, name: foundOrg.name } : { id: orgName, name: orgName };
+      });
+
+      enrichedTimeline[dayKey] = {
+        ...day,
+        characters: enrichedChars,
+        locations: enrichedLocs,
+        organizations: enrichedOrgs,
+      };
+    });
+
+    this.data.timeline = enrichedTimeline;
+  }
     
     renderTimeline() {
         const container = document.getElementById('timelineContainer');
@@ -1090,28 +1121,93 @@ class CampaignManager {
             dayElement.dataset.dayId = day.id;
             
             dayElement.innerHTML = `
-                <div class="day-number">Giorno ${day.day}</div>
-                <div class="day-title">${day.title}</div>
-                <div class="day-content">${day.content}</div>
-                <div class="day-entities">
-                    ${(day.characters || []).map(char => `<span class="entity-tag">${char}</span>`).join('')}
-                    ${(day.locations || []).map(loc => `<span class="entity-tag">${loc}</span>`).join('')}
-                </div>
-                <div class="card-actions master-only">
-                    <button class="btn btn--small btn--secondary" onclick="campaignManager.openEntityModal('timeline', '${day.id}')">Modifica</button>
-                    <button class="btn btn--small btn--danger" onclick="campaignManager.deleteEntity('timeline', '${day.id}')">Elimina</button>
-                </div>
-            `;
+  <div class="day-number">Giorno ${day.day}</div>
+  <div class="day-title">${day.title}</div>
+  <div class="day-content">${day.content}</div>
+
+  <div class="day-entities-group">
+    <div class="entities-group-title">Personaggi:</div>
+    <div class="day-entities personaggi">
+      ${(day.characters || []).map(char => `<span class="entity-tag clickable-tag" data-type="characters" data-id="${char.id}">${char.name}</span>`).join('')}
+    </div>
+  </div>
+
+  <div class="day-entities-group">
+    <div class="entities-group-title">Luoghi:</div>
+    <div class="day-entities luoghi">
+      ${(day.locations || []).map(loc => `<span class="entity-tag clickable-tag" data-type="locations" data-id="${loc.id}">${loc.name}</span>`).join('')}
+    </div>
+  </div>
+
+  <div class="day-entities-group">
+    <div class="entities-group-title">Organizzazioni:</div>
+    <div class="day-entities organizzazioni">
+      ${(day.organizations || []).map(org => `<span class="entity-tag clickable-tag" data-type="organizations" data-id="${org.id}">${org.name}</span>`).join('')}
+    </div>
+  </div>
+
+  <div class="day-summary">
+     <label for="summary-${day.id}">Riassunto del Giorno</label>
+          <textarea id="summary-${day.id}" class="summary-textarea" placeholder="Scrivi qui il riassunto..."></textarea>
+        </div>
+
+        <div class="card-actions master-only">
+          <button class="btn btn--small btn--secondary" onclick="campaignManager.openEntityModal('timeline', '${day.id}')">Modifica</button>
+          <button class="btn btn--small btn--danger" onclick="campaignManager.deleteEntity('timeline', '${day.id}')">Elimina</button>
+        </div>
+      `;
             
             container.appendChild(dayElement);
+	this.loadDaySummary(day.id);
+    	this.attachSummaryListeners(day.id);
         });
         
+  this.attachTagClickListeners();
+  
         // Reinitialize sortable
         if (this.currentTab === 'timeline') {
             setTimeout(() => this.initializeTimelineSortable(), 100);
         }
     }
+
+  attachTagClickListeners() {
+    const tags = document.querySelectorAll('.clickable-tag');
+    tags.forEach(tag => {
+      tag.addEventListener('click', e => {
+        const target = e.currentTarget;
+        const type = target.dataset.type;
+        const id = target.dataset.id;
+        if (type && id) {
+          this.openEntityModal(type, id);
+        }
+      });
+    });
+  }
     
+	loadDaySummary(dayId) {
+    const summaryRef = ref(database, `summaries/${dayId}`);
+    onValue(summaryRef, (snapshot) => {
+      const summary = snapshot.val() || "";
+      const textarea = document.getElementById(`summary-${dayId}`);
+      if (textarea) textarea.value = summary;
+    });
+  }
+
+  saveDaySummary(dayId, text) {
+    const summaryRef = ref(database, `summaries/${dayId}`);
+    set(summaryRef, text).catch(console.error);
+  }
+
+  attachSummaryListeners(dayId) {
+    const textarea = document.getElementById(`summary-${dayId}`);
+    if (!textarea) return;
+
+    textarea.addEventListener("blur", () => {
+      this.saveDaySummary(dayId, textarea.value);
+    });
+  }
+
+
     renderCharacters() {
         const container = document.getElementById('charactersContainer');
         if (!container) return;
@@ -1273,7 +1369,6 @@ const campaignManager = new CampaignManager();
 
 // Make it globally available for onclick handlers
 window.campaignManager = campaignManager;
-
 
 
 

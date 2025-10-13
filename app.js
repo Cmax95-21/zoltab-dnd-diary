@@ -1077,7 +1077,7 @@ class CampaignManager {
         event.target.value = '';
     }
 
-    eenrichTimelineData() {
+    enrichTimelineData() {
   const enrichedTimeline = {};
 
   Object.entries(this.data.timeline).forEach(([dayKey, day]) => {
@@ -1375,6 +1375,7 @@ const campaignManager = new CampaignManager();
 
 // Make it globally available for onclick handlers
 window.campaignManager = campaignManager;
+
 
 
 

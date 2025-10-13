@@ -1184,7 +1184,7 @@ class CampaignManager {
         const type = target.dataset.type;
         const id = target.dataset.id;
         if (type && id) {
-         this.showEntityDetails(type, id);
+          this.showEntityDetails(type, id);
         }
       });
     });
@@ -1214,6 +1214,7 @@ class CampaignManager {
   }
 
 showEntityDetails(type, id) {
+console.log('DEBUG showEntityDetails called with:', type, id);
   const entity = this.data[type][id];
   if (!entity) return;
   const modal = document.getElementById('entityViewModal');
@@ -1411,9 +1412,6 @@ const campaignManager = new CampaignManager();
 
 // Make it globally available for onclick handlers
 window.campaignManager = campaignManager;
-
-
-
 
 
 

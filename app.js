@@ -1184,7 +1184,7 @@ class CampaignManager {
         const type = target.dataset.type;
         const id = target.dataset.id;
         if (type && id) {
-          this.showEntityModal(type, id);
+          this.showEntityDetails(type, id);
         }
       });
     });

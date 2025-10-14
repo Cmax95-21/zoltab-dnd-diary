@@ -203,21 +203,7 @@ class CampaignManager {
     // executeConfirmedAction(), closeConfirmModal(), confirmParsedEntities(), closeParseModal(),
     // previewAvatar(), setupFirebaseListeners(), initializeSampleData()
 }
-
-// Outside the class scope: Authentication state change listener
-onAuthStateChanged(auth, user => {
-    if (user) {
-        const googleLoginBtn = document.getElementById('googleLoginBtn');
-        const nicknameInput = document.getElementById('nicknameInput');
-        const confirmNickname = document.getElementById('confirmNickname');
-        if (googleLoginBtn) googleLoginBtn.style.display = 'none';
-        if (nicknameInput) nicknameInput.style.display = '';
-        if (confirmNickname) confirmNickname.style.display = '';
-        nicknameInput?.focus();
-        console.log("UID Firebase:", user.uid);
-    }
-});
-    
+   
     setupFirebaseListeners() {
         console.log('Setting up Firebase listeners...');
         
@@ -1471,12 +1457,25 @@ closeEntityViewModal() {
         }
     }
 }
-
+// Outside the class scope: Authentication state change listener
+onAuthStateChanged(auth, user => {
+    if (user) {
+        const googleLoginBtn = document.getElementById('googleLoginBtn');
+        const nicknameInput = document.getElementById('nicknameInput');
+        const confirmNickname = document.getElementById('confirmNickname');
+        if (googleLoginBtn) googleLoginBtn.style.display = 'none';
+        if (nicknameInput) nicknameInput.style.display = '';
+        if (confirmNickname) confirmNickname.style.display = '';
+        nicknameInput?.focus();
+        console.log("UID Firebase:", user.uid);
+    }
+});
 // Initialize the application
 const campaignManager = new CampaignManager();
 
 // Make it globally available for onclick handlers
 window.campaignManager = campaignManager;
+
 
 
 

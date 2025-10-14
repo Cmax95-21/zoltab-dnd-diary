@@ -61,7 +61,6 @@ class CampaignManager {
         this.confirmCallback = null;
         this.parseData = null;
         
-        // Data cache
         this.data = {
             timeline: {},
             characters: {},
@@ -78,20 +77,25 @@ class CampaignManager {
     async init() {
         console.log('Initializing Campaign Manager...');
         this.setupEventListeners();
-        this.showNicknameModal();
         this.setupFirebaseListeners();
-        
-        // Initialize with some sample data if Firebase is empty
         setTimeout(() => this.initializeSampleData(), 2000);
+
+        // Mostra solo bottone Google all'avvio
+        document.getElementById('nicknameInput').style.display = 'none';
+        document.getElementById('confirmNickname').style.display = 'none';
+        document.getElementById('googleLoginBtn').style.display = '';
     }
     
     setupEventListeners() {
-        console.log('Setting up event listeners...');
-        
+        // Bottone Google login
+        const googleLoginBtn = document.getElementById('googleLoginBtn');
+        if (googleLoginBtn) {
+            googleLoginBtn.addEventListener('click', () => this.googleLogin());
+        }
+
         // Nickname modal
         const confirmNickname = document.getElementById('confirmNickname');
         const nicknameInput = document.getElementById('nicknameInput');
-        
         if (confirmNickname) {
             confirmNickname.addEventListener('click', () => this.setNickname());
         }
@@ -100,13 +104,42 @@ class CampaignManager {
                 if (e.key === 'Enter') this.setNickname();
             });
         }
-        
+
         // Master toggle
         const masterToggle = document.getElementById('masterToggle');
         if (masterToggle) {
             masterToggle.addEventListener('change', (e) => this.toggleMasterMode(e.target.checked));
         }
-        
+    }
+
+    // Step 1: Google login
+    googleLogin() {
+        signInWithPopup(auth, new GoogleAuthProvider())
+            .then(result => {
+                // Step 2: mostra nickname
+                document.getElementById('googleLoginBtn').style.display = 'none';
+                document.getElementById('nicknameInput').style.display = '';
+                document.getElementById('confirmNickname').style.display = '';
+                document.getElementById('nicknameInput').focus();
+            })
+            .catch(error => {
+                console.error('Errore login Google:', error);
+                alert('Errore login Google: ' + error.message);
+            });
+    }
+}
+
+// Gestione auth Google: mostra nickname se già loggato o dopo login
+onAuthStateChanged(auth, user => {
+    if (user) {
+        document.getElementById('googleLoginBtn').style.display = 'none';
+        document.getElementById('nicknameInput').style.display = '';
+        document.getElementById('confirmNickname').style.display = '';
+        document.getElementById('nicknameInput').focus();
+        console.log("UID Firebase:", user.uid);
+    }
+});
+
         // Header buttons
         const saveBtn = document.getElementById('saveBtn');
         const backupBtn = document.getElementById('backupBtn');

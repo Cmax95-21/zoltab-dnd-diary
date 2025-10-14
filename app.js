@@ -202,7 +202,7 @@ class CampaignManager {
     // uploadMap(), downloadMap(), parseSession(), saveEntity(), closeEntityModal(),
     // executeConfirmedAction(), closeConfirmModal(), confirmParsedEntities(), closeParseModal(),
     // previewAvatar(), setupFirebaseListeners(), initializeSampleData()
-}
+	}
    
     setupFirebaseListeners() {
         console.log('Setting up Firebase listeners...');
@@ -1475,6 +1475,7 @@ const campaignManager = new CampaignManager();
 
 // Make it globally available for onclick handlers
 window.campaignManager = campaignManager;
+
 
 
 

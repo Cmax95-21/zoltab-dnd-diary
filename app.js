@@ -1186,7 +1186,7 @@ class CampaignManager {
       const name = target.textContent.trim();
 
       if (type && id) {
-        this.openEntityModal(type, id);
+        this.showEntityDetails(type, id);
       }
 
       // Switch tab e scroll sulla card corrispondente

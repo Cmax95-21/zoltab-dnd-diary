@@ -104,13 +104,7 @@ class CampaignManager {
                 if (e.key === 'Enter') this.setNickname();
             });
         }
-
-        // Master toggle
-        const masterToggle = document.getElementById('masterToggle');
-        if (masterToggle) {
-            masterToggle.addEventListener('change', (e) => this.toggleMasterMode(e.target.checked));
-        }
-    }
+      }
 
     // Step 1: Google login
     googleLogin() {
@@ -140,6 +134,11 @@ onAuthStateChanged(auth, user => {
     }
 });
 
+ // Master toggle
+        const masterToggle = document.getElementById('masterToggle');
+        if (masterToggle) {
+            masterToggle.addEventListener('change', (e) => this.toggleMasterMode(e.target.checked));
+        }
         // Header buttons
         const saveBtn = document.getElementById('saveBtn');
         const backupBtn = document.getElementById('backupBtn');

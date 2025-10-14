@@ -6,7 +6,7 @@ import {
     getStorage, ref as storageRef, uploadBytes, getDownloadURL, deleteObject 
 } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-storage.js";
 import { 
-    getAuth, signInAnonymously, onAuthStateChanged 
+    getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged 
 } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
 
 // Config
@@ -26,16 +26,24 @@ const database = getDatabase(app);
 const storage = getStorage(app);
 const auth = getAuth(app);
 
-// Login anonima
-signInAnonymously(auth)
-  .then(() => {
-    console.log("Autenticazione anonima riuscita");
-  })
-  .catch(error => {
-    console.error("Errore auth anonima:", error);
-  });
+// Providers Google
+const provider = new GoogleAuthProvider();
 
-// UID al login
+// Evento login Google da bottone con id="googleLoginBtn"
+document.getElementById('googleLoginBtn').addEventListener('click', () => {
+  signInWithPopup(auth, provider)
+    .then((result) => {
+      const user = result.user;
+      console.log('Login Google riuscito:', user);
+      alert(`Accesso effettuato come ${user.displayName} (${user.email})`);
+    })
+    .catch((error) => {
+      console.error('Errore login Google:', error);
+      alert('Errore login Google: ' + error.message);
+    });
+});
+
+// Ascolta cambiamenti di stato auth e stampa UID se utente connesso
 onAuthStateChanged(auth, user => {
   if (user) {
     console.log("UID Firebase:", user.uid);

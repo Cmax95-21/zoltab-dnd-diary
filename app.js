@@ -1,10 +1,13 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+
 import { 
     getDatabase, ref, onValue, set, push, update, remove, off 
 } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js";
+
 import { 
     getStorage, ref as storageRef, uploadBytes, getDownloadURL, deleteObject 
 } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-storage.js";
+
 import { 
     getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged 
 } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
@@ -20,35 +23,11 @@ const firebaseConfig = {
     databaseURL: "https://dnd-campagna-collaborativa-default-rtdb.europe-west1.firebasedatabase.app"
 };
 
-// Inizializza servizi
+// Initialize Firebase services
 const app = initializeApp(firebaseConfig);
 const database = getDatabase(app);
 const storage = getStorage(app);
 const auth = getAuth(app);
-
-// Providers Google
-const provider = new GoogleAuthProvider();
-
-// Evento login Google da bottone con id="googleLoginBtn"
-document.getElementById('googleLoginBtn').addEventListener('click', () => {
-  signInWithPopup(auth, provider)
-    .then((result) => {
-      const user = result.user;
-      console.log('Login Google riuscito:', user);
-      alert(`Accesso effettuato come ${user.displayName} (${user.email})`);
-    })
-    .catch((error) => {
-      console.error('Errore login Google:', error);
-      alert('Errore login Google: ' + error.message);
-    });
-});
-
-// Ascolta cambiamenti di stato auth e stampa UID se utente connesso
-onAuthStateChanged(auth, user => {
-  if (user) {
-    console.log("UID Firebase:", user.uid);
-  }
-});
 
 class CampaignManager {
     constructor() {
@@ -60,7 +39,7 @@ class CampaignManager {
         this.sortableInstance = null;
         this.confirmCallback = null;
         this.parseData = null;
-        
+
         this.data = {
             timeline: {},
             characters: {},
@@ -69,31 +48,33 @@ class CampaignManager {
             organizations: {},
             map: null
         };
-        
-        // Initialize the app
+
         this.init();
     }
-    
+
     async init() {
         console.log('Initializing Campaign Manager...');
         this.setupEventListeners();
         this.setupFirebaseListeners();
         setTimeout(() => this.initializeSampleData(), 2000);
 
-        // Mostra solo bottone Google all'avvio
-        document.getElementById('nicknameInput').style.display = 'none';
-        document.getElementById('confirmNickname').style.display = 'none';
-        document.getElementById('googleLoginBtn').style.display = '';
+        // Show only the Google login button at startup
+        const nicknameInput = document.getElementById('nicknameInput');
+        const confirmNickname = document.getElementById('confirmNickname');
+        const googleLoginBtn = document.getElementById('googleLoginBtn');
+        if (nicknameInput) nicknameInput.style.display = 'none';
+        if (confirmNickname) confirmNickname.style.display = 'none';
+        if (googleLoginBtn) googleLoginBtn.style.display = '';
     }
-    
+
     setupEventListeners() {
-        // Bottone Google login
+        // Google login button
         const googleLoginBtn = document.getElementById('googleLoginBtn');
         if (googleLoginBtn) {
             googleLoginBtn.addEventListener('click', () => this.googleLogin());
         }
 
-        // Nickname modal
+        // Nickname modal buttons and input
         const confirmNickname = document.getElementById('confirmNickname');
         const nicknameInput = document.getElementById('nicknameInput');
         if (confirmNickname) {
@@ -104,108 +85,80 @@ class CampaignManager {
                 if (e.key === 'Enter') this.setNickname();
             });
         }
-      }
 
-    // Step 1: Google login
-    googleLogin() {
-        signInWithPopup(auth, new GoogleAuthProvider())
-            .then(result => {
-                // Step 2: mostra nickname
-                document.getElementById('googleLoginBtn').style.display = 'none';
-                document.getElementById('nicknameInput').style.display = '';
-                document.getElementById('confirmNickname').style.display = '';
-                document.getElementById('nicknameInput').focus();
-            })
-            .catch(error => {
-                console.error('Errore login Google:', error);
-                alert('Errore login Google: ' + error.message);
-            });
-    }
-}
-
-// Gestione auth Google: mostra nickname se già loggato o dopo login
-onAuthStateChanged(auth, user => {
-    if (user) {
-        document.getElementById('googleLoginBtn').style.display = 'none';
-        document.getElementById('nicknameInput').style.display = '';
-        document.getElementById('confirmNickname').style.display = '';
-        document.getElementById('nicknameInput').focus();
-        console.log("UID Firebase:", user.uid);
-    }
-});
-
- // Master toggle
+        // Master toggle
         const masterToggle = document.getElementById('masterToggle');
         if (masterToggle) {
             masterToggle.addEventListener('change', (e) => this.toggleMasterMode(e.target.checked));
         }
+
         // Header buttons
         const saveBtn = document.getElementById('saveBtn');
         const backupBtn = document.getElementById('backupBtn');
         const restoreBtn = document.getElementById('restoreBtn');
         const restoreFileInput = document.getElementById('restoreFileInput');
-        
+
         if (saveBtn) saveBtn.addEventListener('click', () => this.saveData());
         if (backupBtn) backupBtn.addEventListener('click', () => this.exportData());
         if (restoreBtn) restoreBtn.addEventListener('click', () => this.importData());
         if (restoreFileInput) restoreFileInput.addEventListener('change', (e) => this.handleRestoreFile(e));
-        
+
         // Navigation tabs
         document.querySelectorAll('.nav-tab').forEach(tab => {
             tab.addEventListener('click', () => this.switchTab(tab.dataset.tab));
         });
-        
-        // Search
+
+        // Global search input
         const globalSearch = document.getElementById('globalSearch');
         if (globalSearch) {
             globalSearch.addEventListener('input', (e) => this.handleSearch(e.target.value));
         }
-        
-        // Add buttons
+
+        // Add entity buttons
         const addTimelineBtn = document.getElementById('addTimelineBtn');
         const addCharacterBtn = document.getElementById('addCharacterBtn');
         const addLocationBtn = document.getElementById('addLocationBtn');
         const addQuestBtn = document.getElementById('addQuestBtn');
         const addOrganizationBtn = document.getElementById('addOrganizationBtn');
-        
+
         if (addTimelineBtn) addTimelineBtn.addEventListener('click', () => this.openEntityModal('timeline'));
         if (addCharacterBtn) addCharacterBtn.addEventListener('click', () => this.openEntityModal('characters'));
         if (addLocationBtn) addLocationBtn.addEventListener('click', () => this.openEntityModal('locations'));
         if (addQuestBtn) addQuestBtn.addEventListener('click', () => this.openEntityModal('quests'));
         if (addOrganizationBtn) addOrganizationBtn.addEventListener('click', () => this.openEntityModal('organizations'));
-        
+
         // Map controls
         const uploadMapBtn = document.getElementById('uploadMapBtn');
         const mapUpload = document.getElementById('mapUpload');
         const downloadMapBtn = document.getElementById('downloadMapBtn');
-        
-        if (uploadMapBtn) uploadMapBtn.addEventListener('click', () => document.getElementById('mapUpload').click());
+
+        if (uploadMapBtn) uploadMapBtn.addEventListener('click', () => mapUpload?.click());
         if (mapUpload) mapUpload.addEventListener('change', (e) => this.uploadMap(e.target.files[0]));
         if (downloadMapBtn) downloadMapBtn.addEventListener('click', () => this.downloadMap());
-        
-        // Session parsing
+
+        // Session parsing button
         const parseSessionBtn = document.getElementById('parseSessionBtn');
         if (parseSessionBtn) parseSessionBtn.addEventListener('click', () => this.parseSession());
-        
-        // Modal controls
+
+        // Modal buttons controls
         const saveEntity = document.getElementById('saveEntity');
         const cancelEntity = document.getElementById('cancelEntity');
         const confirmAction = document.getElementById('confirmAction');
         const cancelConfirm = document.getElementById('cancelConfirm');
         const confirmParse = document.getElementById('confirmParse');
         const cancelParse = document.getElementById('cancelParse');
-        
+
         if (saveEntity) saveEntity.addEventListener('click', () => this.saveEntity());
         if (cancelEntity) cancelEntity.addEventListener('click', () => this.closeEntityModal());
         if (confirmAction) confirmAction.addEventListener('click', () => this.executeConfirmedAction());
         if (cancelConfirm) cancelConfirm.addEventListener('click', () => this.closeConfirmModal());
         if (confirmParse) confirmParse.addEventListener('click', () => this.confirmParsedEntities());
         if (cancelParse) cancelParse.addEventListener('click', () => this.closeParseModal());
-        
-        // Avatar upload
+
+        // Avatar upload input
         const avatarUpload = document.getElementById('avatarUpload');
         if (avatarUpload) avatarUpload.addEventListener('change', (e) => this.previewAvatar(e.target.files[0]));
-        
+
         // Close modals on backdrop click
         document.querySelectorAll('.modal').forEach(modal => {
             modal.addEventListener('click', (e) => {
@@ -214,16 +167,56 @@ onAuthStateChanged(auth, user => {
                 }
             });
         });
-        
-        // Close buttons
+
+        // Close modal buttons
         document.querySelectorAll('.modal-close').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 e.target.closest('.modal').classList.add('hidden');
             });
         });
-        
+
         console.log('Event listeners setup complete');
     }
+
+    googleLogin() {
+        signInWithPopup(auth, new GoogleAuthProvider())
+            .then(result => {
+                // Show nickname input after login
+                const googleLoginBtn = document.getElementById('googleLoginBtn');
+                const nicknameInput = document.getElementById('nicknameInput');
+                const confirmNickname = document.getElementById('confirmNickname');
+                if (googleLoginBtn) googleLoginBtn.style.display = 'none';
+                if (nicknameInput) nicknameInput.style.display = '';
+                if (confirmNickname) confirmNickname.style.display = '';
+                nicknameInput?.focus();
+            })
+            .catch(error => {
+                console.error('Errore login Google:', error);
+                alert('Errore login Google: ' + error.message);
+            });
+    }
+
+    // Placeholder for other methods of the CampaignManager class
+    // setNickname(), toggleMasterMode(), saveData(), exportData(), importData(),
+    // handleRestoreFile(), switchTab(), handleSearch(), openEntityModal(),
+    // uploadMap(), downloadMap(), parseSession(), saveEntity(), closeEntityModal(),
+    // executeConfirmedAction(), closeConfirmModal(), confirmParsedEntities(), closeParseModal(),
+    // previewAvatar(), setupFirebaseListeners(), initializeSampleData()
+}
+
+// Outside the class scope: Authentication state change listener
+onAuthStateChanged(auth, user => {
+    if (user) {
+        const googleLoginBtn = document.getElementById('googleLoginBtn');
+        const nicknameInput = document.getElementById('nicknameInput');
+        const confirmNickname = document.getElementById('confirmNickname');
+        if (googleLoginBtn) googleLoginBtn.style.display = 'none';
+        if (nicknameInput) nicknameInput.style.display = '';
+        if (confirmNickname) confirmNickname.style.display = '';
+        nicknameInput?.focus();
+        console.log("UID Firebase:", user.uid);
+    }
+});
     
     setupFirebaseListeners() {
         console.log('Setting up Firebase listeners...');
@@ -1484,6 +1477,7 @@ const campaignManager = new CampaignManager();
 
 // Make it globally available for onclick handlers
 window.campaignManager = campaignManager;
+
 
 
 

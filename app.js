@@ -1131,41 +1131,174 @@ class CampaignManager {
   this.data.timeline = enrichedTimeline;
 }
     
-   renderTimeline() {
-    const container = document.getElementById('timelineContainer');
-    if (!container) return;
+    renderTimeline() {
+        const container = document.getElementById('timelineContainer');
+        if (!container) return;
+        
+        container.innerHTML = '';
+        
+        const timeline = Object.values(this.data.timeline).sort((a, b) => (a.order || a.day || 0) - (b.order || b.day || 0));
+        
+        timeline.forEach(day => {
+            const dayElement = document.createElement('div');
+            dayElement.className = `timeline-day ${day.active ? 'active' : ''}`;
+            dayElement.dataset.dayId = day.id;
+            
+            dayElement.innerHTML = `
+  <div class="day-number">Giorno ${day.day}</div>
+  <div class="day-title">${day.title}</div>
+  <div class="day-content">${day.content}</div>
 
-    container.innerHTML = '';
-    container.className = 'timeline-grid';
+  <div class="day-entities-group">
+    <div class="entities-group-title">Personaggi:</div>
+    <div class="day-entities personaggi">
+      ${(day.characters || []).map(char => `<span class="entity-tag clickable-tag" data-type="characters" data-id="${char.id}">${char.name}</span>`).join('')}
+    </div>
+  </div>
 
-    const timeline = Object.values(this.data.timeline)
-        .sort((a, b) => (a.order || a.day || 0) - (b.order || b.day || 0));
+  <div class="day-entities-group">
+    <div class="entities-group-title">Luoghi:</div>
+    <div class="day-entities luoghi">
+      ${(day.locations || []).map(loc => `<span class="entity-tag clickable-tag" data-type="locations" data-id="${loc.id}">${loc.name}</span>`).join('')}
+    </div>
+  </div>
 
-    timeline.forEach(day => {
-        const sessionElement = document.createElement('div');
-        sessionElement.className = `timeline-session${day.active ? ' active' : ''}`;
-        sessionElement.dataset.dayId = day.id;
+  <div class="day-entities-group">
+    <div class="entities-group-title">Organizzazioni:</div>
+    <div class="day-entities organizzazioni">
+      ${(day.organizations || []).map(org => `<span class="entity-tag clickable-tag" data-type="organizations" data-id="${org.id}">${org.name}</span>`).join('')}
+    </div>
+  </div>
 
-        sessionElement.innerHTML = `
-            <div class="session-title">${day.title ? day.title : 'Sessione'}</div>
-            <div class="session-summary">${day.summary || ''}</div>
-            <div class="tags">
-                ${(day.characters || []).map(char => `<span class="tag character">${char.name || char}</span>`).join('')}
-                ${(day.locations || []).map(loc => `<span class="tag location">${loc.name || loc}</span>`).join('')}
-                ${(day.organizations || []).map(org => `<span class="tag organization">${org.name || org}</span>`).join('')}
-            </div>
-        `;
+  <div class="day-summary">
+     <label for="summary-${day.id}">Riassunto del Giorno</label>
+          <textarea id="summary-${day.id}" class="summary-textarea" placeholder="Scrivi qui il riassunto..."></textarea>
+        </div>
 
-        sessionElement.onclick = () => this.openEntityModal('timeline', day.id);
-
-        container.appendChild(sessionElement);
-    });
-
-    if (this.currentTab === 'timeline') {
-        setTimeout(() => this.initializeTimelineSortable(), 100);
+        <div class="card-actions master-only">
+          <button class="btn btn--small btn--secondary" onclick="campaignManager.openEntityModal('timeline', '${day.id}')">Modifica</button>
+          <button class="btn btn--small btn--danger" onclick="campaignManager.deleteEntity('timeline', '${day.id}')">Elimina</button>
+        </div>
+      `;
+            
+            container.appendChild(dayElement);
+	this.loadDaySummary(day.id);
+    	this.attachSummaryListeners(day.id);
+        });
+        
+  this.attachTagClickListeners();
+  
+        // Reinitialize sortable
+        if (this.currentTab === 'timeline') {
+            setTimeout(() => this.initializeTimelineSortable(), 100);
+        }
     }
+
+  attachTagClickListeners() {
+  const tags = document.querySelectorAll('.clickable-tag');
+  tags.forEach(tag => {
+    tag.addEventListener('click', e => {
+      const target = e.currentTarget;
+      const type = target.dataset.type;
+      const id = target.dataset.id;
+      const name = target.textContent.trim();
+
+      if (type && id) {
+        this.showEntityDetails(type, id);
+      }
+
+      // Switch tab e scroll sulla card corrispondente
+      if (type && name) {
+        this.switchTab(type);
+        setTimeout(() => {
+          const cards = document.querySelectorAll(`#${type}Container .card-title`);
+          cards.forEach(card => {
+            if (card.textContent.trim() === name) {
+              card.scrollIntoView({behavior: 'smooth', block: 'center'});
+              card.parentElement.classList.add('highlight');
+              setTimeout(() => card.parentElement.classList.remove('highlight'), 1500);
+            }
+          });
+        }, 250);
+      }
+    });
+  });
+}
+    
+	loadDaySummary(dayId) {
+    const summaryRef = ref(database, `summaries/${dayId}`);
+    onValue(summaryRef, (snapshot) => {
+      const summary = snapshot.val() || "";
+      const textarea = document.getElementById(`summary-${dayId}`);
+      if (textarea) textarea.value = summary;
+    });
+  }
+
+  saveDaySummary(dayId, text) {
+    const summaryRef = ref(database, `summaries/${dayId}`);
+    set(summaryRef, text).catch(console.error);
+  }
+
+  attachSummaryListeners(dayId) {
+    const textarea = document.getElementById(`summary-${dayId}`);
+    if (!textarea) return;
+
+    textarea.addEventListener("blur", () => {
+      this.saveDaySummary(dayId, textarea.value);
+    });
+  }
+
+showEntityDetails(type, id) {
+  console.log('DEBUG showEntityDetails called with:', type, id);
+
+  const entity = this.data[type][id];
+  console.log('DEBUG entity:', entity);
+  if (!entity) return;
+
+  const modal = document.getElementById('entityViewModal');
+  console.log('DEBUG modal:', modal);
+  if (!modal) return;
+
+  try {
+    const nameNode = modal.querySelector('.entity-name');
+    const descNode = modal.querySelector('.entity-description');
+    const metaNode = modal.querySelector('.entity-meta');
+    const avatarNode = modal.querySelector('.entity-avatar');
+    console.log('DEBUG nodes:', {nameNode, descNode, metaNode, avatarNode});
+
+    if (nameNode) nameNode.textContent = entity.name || entity.title || '';
+    if (descNode) descNode.textContent = entity.description || entity.content || '';
+
+    let meta = '';
+    if (type === 'characters') {
+      meta = `${entity.race || ''} ${entity.class || ''}`.trim();
+      if (avatarNode) {
+        if (entity.avatar) {
+          avatarNode.src = entity.avatar;
+          avatarNode.style.display = '';
+        } else {
+          avatarNode.style.display = 'none';
+        }
+      }
+    } else if (type === 'locations' || type === 'organizations') {
+      meta = entity.type || '';
+      if (avatarNode) avatarNode.style.display = 'none';
+    }
+    if (metaNode) metaNode.textContent = meta;
+    console.log('DEBUG before remove hidden:', modal.className);
+
+    modal.classList.remove('hidden');
+    console.log('DEBUG after remove hidden:', modal.className);
+
+  } catch (e) {
+    console.error('DEBUG ERROR in showEntityDetails:', e);
+  }
 }
 
+closeEntityViewModal() {
+  const modal = document.getElementById('entityViewModal');
+  if (modal) modal.classList.add('hidden');
+}
 
     renderCharacters() {
         const container = document.getElementById('charactersContainer');
@@ -1341,6 +1474,7 @@ const campaignManager = new CampaignManager();
 
 // Make it globally available for onclick handlers
 window.campaignManager = campaignManager;
+
 
 
 

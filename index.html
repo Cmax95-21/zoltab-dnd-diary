@@ -9,19 +9,21 @@
 </head>
 <body>
     <!-- Nickname Modal -->
-    <div id="nicknameModal" class="modal">
-        <div class="modal-content">
-            <h2>Benvenuto nella Campagna D&D</h2>
-            <div class="form-group">
-                <label for="nicknameInput">Inserisci il tuo nickname:</label>
-                <input type="text" id="nicknameInput" class="form-control" placeholder="Il tuo nome...">
-            </div>
-            <button id="confirmNickname" class="btn btn--primary">Entra</button>
-	    <button id="googleLoginBtn" class="btn btn--primary" style="margin-top:12px;">
-      Accedi con Google
-    </button>
+<div id="nicknameModal" class="modal">
+    <div class="modal-content">
+        <h2>Benvenuto nella Campagna D&D</h2>
+        <!-- Step 1: solo questo visibile all’avvio -->
+        <button id="googleLoginBtn" class="btn btn--primary" style="margin-bottom:18px;">
+            Accedi con Google
+        </button>
+        <!-- Step 2: questi compaiono solo DOPO login Google -->
+        <div class="form-group">
+            <label for="nicknameInput">Inserisci il tuo nickname:</label>
+            <input type="text" id="nicknameInput" class="form-control" placeholder="Il tuo nome...">
         </div>
+        <button id="confirmNickname" class="btn btn--primary">Entra</button>
     </div>
+</div>
 
     <!-- Main Application -->
     <div id="mainApp" class="main-app hidden">

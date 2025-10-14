@@ -1,27 +1,29 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gestione Campagna D&D</title>
-    <link rel="stylesheet" href="style.css" />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
     <!-- Nickname Modal -->
-    <div id="nicknameModal" class="modal">
-        <div class="modal-content">
-            <h2>Benvenuto nella Campagna D&D</h2>
-            <button id="googleLoginBtn" class="btn btn--primary" style="margin-bottom:18px;">
-                Accedi con Google
-            </button>
-            <div class="form-group" style="display:none;">
-                <label for="nicknameInput">Inserisci il tuo nickname:</label>
-                <input type="text" id="nicknameInput" class="form-control" placeholder="Il tuo nome..." />
-            </div>
-            <button id="confirmNickname" class="btn btn--primary">Entra</button>
+<div id="nicknameModal" class="modal">
+    <div class="modal-content">
+        <h2>Benvenuto nella Campagna D&D</h2>
+        <!-- Step 1: solo questo visibile all’avvio -->
+        <button id="googleLoginBtn" class="btn btn--primary" style="margin-bottom:18px;">
+            Accedi con Google
+        </button>
+        <!-- Step 2: questi compaiono solo DOPO login Google -->
+        <div class="form-group">
+            <label for="nicknameInput">Inserisci il tuo nickname:</label>
+            <input type="text" id="nicknameInput" class="form-control" placeholder="Il tuo nome...">
         </div>
+        <button id="confirmNickname" class="btn btn--primary">Entra</button>
     </div>
+</div>
 
     <!-- Main Application -->
     <div id="mainApp" class="main-app hidden">
@@ -68,10 +70,10 @@
             <!-- Timeline Tab -->
             <section id="timeline" class="tab-content active">
                 <div class="section-header">
-                    <h2>Timeline delle Sessioni</h2>
+                    <h2>Timeline delle Giornate</h2>
                     <button id="addTimelineBtn" class="btn btn--primary master-only">Aggiungi Giornata</button>
                 </div>
-                <div id="timelineContainer" class="timeline-grid"></div>
+                <div id="timelineContainer" class="timeline-container"></div>
             </section>
 
             <!-- Characters Tab -->
@@ -218,23 +220,23 @@
         <p>Sincronizzazione in corso...</p>
     </div>
 
+...
     <!-- Hidden file input for restore -->
-    <input type="file" id="restoreFileInput" accept=".json" class="hidden" />
-
-    <!-- Entity View Modal -->
-    <div id="entityViewModal" class="modal hidden">
-        <div class="modal-content">
-            <span class="modal-close" onclick="campaignManager.closeEntityViewModal()">&times;</span>
-            <div class="entity-view">
-                <h2 class="entity-name"></h2>
-                <div class="entity-meta"></div>
-                <div class="entity-description"></div>
-                <img class="entity-avatar" style="display:none; max-width:80px; margin:10px 0;" />
-            </div>
-        </div>
-    </div>
+    <input type="file" id="restoreFileInput" accept=".json" class="hidden">
 
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
     <script type="module" src="app.js"></script>
+<div id="entityViewModal" class="modal hidden">
+  <div class="modal-content">
+    <span class="modal-close" onclick="campaignManager.closeEntityViewModal()">&times;</span>
+    <div class="entity-view">
+      <h2 class="entity-name"></h2>
+      <div class="entity-meta"></div>
+      <div class="entity-description"></div>
+      <img class="entity-avatar" style="display:none; max-width:80px; margin:10px 0;">
+    </div>
+  </div>
+</div>
+
 </body>
 </html>

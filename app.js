@@ -175,6 +175,17 @@ class CampaignManager {
             });
         });
 
+        
+
+        // Session detail modal backdrop click
+        const sessionModal = document.getElementById('sessionDetailModal');
+        if (sessionModal) {
+            sessionModal.addEventListener('click', (e) => {
+                if (e.target === sessionModal) {
+                    this.closeSessionDetailModal();
+                }
+            });
+        }
         console.log('Event listeners setup complete');
     }
 
@@ -275,11 +286,12 @@ class CampaignManager {
             
             const sampleData = {
                 timeline: {
-                    day1: {
-                        id: 'day1',
-                        day: 1,
+                    session1: {
+                        id: 'session1',
+                        session: 1,
+                        day: 1,  // manteniamo per compatibilità
                         title: 'L\'Inizio della Campagna',
-                        content: 'Prima sessione della campagna. I personaggi si incontrano a Elysium.',
+                        content: 'Prima sessione della campagna. I personaggi si incontrano a Elysium e iniziano la loro avventura. Durante questa sessione vengono stabiliti i primi contatti e alleanze.',
                         characters: ['Zoltab'],
                         locations: ['Elysium'],
                         active: true,
@@ -389,11 +401,11 @@ class CampaignManager {
     initializeTimelineSortable() {
         const container = document.getElementById('timelineContainer');
         if (!container) return;
-        
+
         if (this.sortableInstance) {
             this.sortableInstance.destroy();
         }
-        
+
         this.sortableInstance = Sortable.create(container, {
             animation: 200,
             ghostClass: 'sortable-ghost',
@@ -403,21 +415,21 @@ class CampaignManager {
                 this.updateTimelineOrder();
             }
         });
-        
-        console.log('Timeline sortable initialized');
+
+        console.log('Timeline sortable initialized for grid layout');
     }
     
-    async updateTimelineOrder() {
-        const timelineItems = document.querySelectorAll('.timeline-day');
+    async async updateTimelineOrder() {
+        const timelineItems = document.querySelectorAll('.timeline-session');
         const updates = {};
-        
+
         timelineItems.forEach((item, index) => {
-            const dayId = item.dataset.dayId;
-            if (this.data.timeline[dayId]) {
-                updates[`timeline/${dayId}/order`] = index;
+            const sessionId = item.dataset.sessionId;
+            if (this.data.timeline[sessionId]) {
+                updates[`timeline/${sessionId}/order`] = index;
             }
         });
-        
+
         try {
             await update(ref(database), updates);
             console.log('Timeline order updated');
@@ -511,7 +523,7 @@ class CampaignManager {
     
     getEntityTypeName(type) {
         const names = {
-            timeline: 'Giornata',
+            timeline: 'Sessione',
             characters: 'Personaggio',
             locations: 'Luogo',
             quests: 'Missione',
@@ -566,8 +578,8 @@ class CampaignManager {
             case 'timeline':
                 container.innerHTML = `
                     <div class="form-group">
-                        <label for="dayNumber">Giorno</label>
-                        <input type="number" id="dayNumber" class="form-control" min="1" value="${Object.keys(this.data.timeline).length + 1}">
+                        <label for="sessionNumber">Sessione</label>
+                        <input type="number" id="sessionNumber" class="form-control" min="1" value="${Object.keys(this.data.timeline).length + 1}">
                     </div>
                 `;
                 break;
@@ -608,8 +620,8 @@ class CampaignManager {
                 if (orgTypeInput) orgTypeInput.value = entity.type || '';
                 break;
             case 'timeline':
-                const dayInput = document.getElementById('dayNumber');
-                if (dayInput) dayInput.value = entity.day || '';
+                const sessionInput = document.getElementById('sessionNumber');
+                if (sessionInput) sessionInput.value = entity.day || '';
                 break;
         }
     }
@@ -659,11 +671,11 @@ class CampaignManager {
                     entityData.type = orgTypeInput ? orgTypeInput.value : '';
                     break;
                 case 'timeline':
-                    const dayInput = document.getElementById('dayNumber');
+                    const sessionInput = document.getElementById('sessionNumber');
                     entityData = {
                         title: name,
                         content: description,
-                        day: dayInput ? parseInt(dayInput.value) || 1 : 1,
+                        day: sessionInput ? parseInt(sessionInput.value) || 1 : 1,
                         active: true,
                         characters: [],
                         locations: [],
@@ -760,6 +772,102 @@ class CampaignManager {
             modal.classList.add('hidden');
         }
         this.confirmCallback = null;
+    }
+
+    openSessionDetailModal(sessionId) {
+        console.log('Opening session detail modal for:', sessionId);
+        const session = this.data.timeline[sessionId];
+        if (!session) return;
+
+        const modal = document.getElementById('sessionDetailModal');
+        const title = document.getElementById('sessionDetailTitle');
+        const meta = document.getElementById('sessionDetailMeta');
+        const content = document.getElementById('sessionDetailContent');
+        const tags = document.getElementById('sessionDetailTags');
+        const editBtn = document.getElementById('editSessionBtn');
+        const deleteBtn = document.getElementById('deleteSessionBtn');
+
+        if (!modal) return;
+
+        // Popola il contenuto del modal
+        if (title) title.textContent = session.title || 'Sessione senza titolo';
+        if (meta) meta.textContent = `Sessione ${session.day || session.session || 1}`;
+        if (content) content.innerHTML = session.content ? session.content.replace(/\n/g, '<br>') : 'Nessun contenuto disponibile';
+
+        // Popola i tag
+        if (tags) {
+            const allTags = [];
+
+            if (session.characters && session.characters.length > 0) {
+                session.characters.forEach(char => {
+                    if (typeof char === 'object' && char.name) {
+                        allTags.push(`<span class="session-detail-tag characters" data-type="characters" data-name="${char.name}">👤 ${char.name}</span>`);
+                    }
+                });
+            }
+
+            if (session.locations && session.locations.length > 0) {
+                session.locations.forEach(loc => {
+                    if (typeof loc === 'object' && loc.name) {
+                        allTags.push(`<span class="session-detail-tag locations" data-type="locations" data-name="${loc.name}">🏞️ ${loc.name}</span>`);
+                    }
+                });
+            }
+
+            if (session.organizations && session.organizations.length > 0) {
+                session.organizations.forEach(org => {
+                    if (typeof org === 'object' && org.name) {
+                        allTags.push(`<span class="session-detail-tag organizations" data-type="organizations" data-name="${org.name}">⚜️ ${org.name}</span>`);
+                    }
+                });
+            }
+
+            tags.innerHTML = allTags.join('');
+
+            // Aggiungi event listeners ai tag
+            tags.querySelectorAll('.session-detail-tag').forEach(tag => {
+                tag.addEventListener('click', (e) => {
+                    const type = e.target.dataset.type;
+                    const name = e.target.dataset.name;
+                    this.closeSessionDetailModal();
+                    this.switchTab(type);
+                    setTimeout(() => {
+                        const cards = document.querySelectorAll(`#${type}Container .card-title`);
+                        cards.forEach(card => {
+                            if (card.textContent.trim() === name) {
+                                card.scrollIntoView({behavior: 'smooth', block: 'center'});
+                                card.parentElement.classList.add('highlight');
+                                setTimeout(() => card.parentElement.classList.remove('highlight'), 1500);
+                            }
+                        });
+                    }, 250);
+                });
+            });
+        }
+
+        // Event listeners per i bottoni
+        if (editBtn) {
+            editBtn.onclick = () => {
+                this.closeSessionDetailModal();
+                this.openEntityModal('timeline', sessionId);
+            };
+        }
+
+        if (deleteBtn) {
+            deleteBtn.onclick = () => {
+                this.closeSessionDetailModal();
+                this.deleteEntity('timeline', sessionId);
+            };
+        }
+
+        modal.classList.remove('hidden');
+    }
+
+    closeSessionDetailModal() {
+        const modal = document.getElementById('sessionDetailModal');
+        if (modal) {
+            modal.classList.add('hidden');
+        }
     }
     
     executeConfirmedAction() {
@@ -1132,63 +1240,78 @@ class CampaignManager {
 }
     
     renderTimeline() {
+        console.log('Rendering timeline...');
         const container = document.getElementById('timelineContainer');
         if (!container) return;
-        
+
         container.innerHTML = '';
-        
-        const timeline = Object.values(this.data.timeline).sort((a, b) => (a.order || a.day || 0) - (b.order || b.day || 0));
-        
-        timeline.forEach(day => {
-            const dayElement = document.createElement('div');
-            dayElement.className = `timeline-day ${day.active ? 'active' : ''}`;
-            dayElement.dataset.dayId = day.id;
-            
-            dayElement.innerHTML = `
-  <div class="day-number">Giorno ${day.day}</div>
-  <div class="day-title">${day.title}</div>
-  <div class="day-content">${day.content}</div>
 
-  <div class="day-entities-group">
-    <div class="entities-group-title">Personaggi:</div>
-    <div class="day-entities personaggi">
-      ${(day.characters || []).map(char => `<span class="entity-tag clickable-tag" data-type="characters" data-id="${char.id}">${char.name}</span>`).join('')}
-    </div>
-  </div>
+        if (!this.data.timeline || Object.keys(this.data.timeline).length === 0) {
+            container.innerHTML = '<div class="empty-state">Nessuna sessione ancora creata. Usa il tasto "Aggiungi Sessione" per iniziare.</div>';
+            return;
+        }
 
-  <div class="day-entities-group">
-    <div class="entities-group-title">Luoghi:</div>
-    <div class="day-entities luoghi">
-      ${(day.locations || []).map(loc => `<span class="entity-tag clickable-tag" data-type="locations" data-id="${loc.id}">${loc.name}</span>`).join('')}
-    </div>
-  </div>
+        // Ordina le sessioni per ordine
+        const sortedSessions = Object.values(this.data.timeline)
+            .sort((a, b) => (a.order || 0) - (b.order || 0));
 
-  <div class="day-entities-group">
-    <div class="entities-group-title">Organizzazioni:</div>
-    <div class="day-entities organizzazioni">
-      ${(day.organizations || []).map(org => `<span class="entity-tag clickable-tag" data-type="organizations" data-id="${org.id}">${org.name}</span>`).join('')}
-    </div>
-  </div>
+        sortedSessions.forEach(session => {
+            const sessionElement = document.createElement('div');
+            sessionElement.className = 'timeline-session';
+            sessionElement.dataset.sessionId = session.id;
+            if (session.active) sessionElement.classList.add('active');
 
-  <div class="day-summary">
-     <label for="summary-${day.id}">Riassunto del Giorno</label>
-          <textarea id="summary-${day.id}" class="summary-textarea" placeholder="Scrivi qui il riassunto..."></textarea>
-        </div>
+            // Crea il riassunto (prime 150 caratteri del contenuto)
+            const summary = session.content ? 
+                (session.content.length > 150 ? session.content.substring(0, 150) + '...' : session.content) 
+                : 'Nessun contenuto disponibile';
 
-        <div class="card-actions master-only">
-          <button class="btn btn--small btn--secondary" onclick="campaignManager.openEntityModal('timeline', '${day.id}')">Modifica</button>
-          <button class="btn btn--small btn--danger" onclick="campaignManager.deleteEntity('timeline', '${day.id}')">Elimina</button>
-        </div>
-      `;
-            
-            container.appendChild(dayElement);
-	this.loadDaySummary(day.id);
-    	this.attachSummaryListeners(day.id);
+            // Combina tutti i tag delle entità
+            const allTags = [];
+            if (session.characters && session.characters.length > 0) {
+                session.characters.forEach(char => {
+                    if (typeof char === 'object' && char.name) {
+                        allTags.push({name: char.name, type: 'characters'});
+                    }
+                });
+            }
+            if (session.locations && session.locations.length > 0) {
+                session.locations.forEach(loc => {
+                    if (typeof loc === 'object' && loc.name) {
+                        allTags.push({name: loc.name, type: 'locations'});
+                    }
+                });
+            }
+            if (session.organizations && session.organizations.length > 0) {
+                session.organizations.forEach(org => {
+                    if (typeof org === 'object' && org.name) {
+                        allTags.push({name: org.name, type: 'organizations'});
+                    }
+                });
+            }
+
+            // Limita i tag mostrati a 6
+            const visibleTags = allTags.slice(0, 6);
+            const tagsHtml = visibleTags.map(tag => 
+                `<span class="session-tag ${tag.type}" data-type="${tag.type}" data-name="${tag.name}">${tag.name}</span>`
+            ).join('');
+
+            sessionElement.innerHTML = `
+                <div class="session-number">Sessione ${session.day || session.session || 1}</div>
+                <div class="session-title">${session.title || 'Sessione senza titolo'}</div>
+                <div class="session-summary">${summary}</div>
+                <div class="session-tags">${tagsHtml}${allTags.length > 6 ? '<span class="session-tag">+' + (allTags.length - 6) + '</span>' : ''}</div>
+            `;
+
+            // Event listener per aprire il modal
+            sessionElement.addEventListener('click', () => {
+                this.openSessionDetailModal(session.id);
+            });
+
+            container.appendChild(sessionElement);
         });
-        
-  this.attachTagClickListeners();
-  
-        // Reinitialize sortable
+
+        // Reinizializza sortable per la nuova griglia
         if (this.currentTab === 'timeline') {
             setTimeout(() => this.initializeTimelineSortable(), 100);
         }
@@ -1474,6 +1597,7 @@ const campaignManager = new CampaignManager();
 
 // Make it globally available for onclick handlers
 window.campaignManager = campaignManager;
+
 
 
 

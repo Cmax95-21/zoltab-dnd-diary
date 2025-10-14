@@ -179,6 +179,16 @@ class CampaignManager {
 
         
 
+        // Session detail modal listeners
+        const sessionDetailModal = document.getElementById('sessionDetailModal');
+        if (sessionDetailModal) {
+            sessionDetailModal.addEventListener('click', (e) => {
+                if (e.target === sessionDetailModal) {
+                    this.closeSessionDetailModal();
+                }
+            });
+        }
+
         // Session presence modal listeners
         const saveSessionPresence = document.getElementById('saveSessionPresence');
         const cancelSessionPresence = document.getElementById('cancelSessionPresence');
@@ -235,6 +245,7 @@ class CampaignManager {
         onValue(timelineRef, (snapshot) => {
             const data = snapshot.val() || {};
             this.data.timeline = data;
+            this.enrichTimelineData();
             this.renderTimeline();
         }, (error) => {
             console.error('Timeline listener error:', error);
@@ -414,11 +425,11 @@ class CampaignManager {
     initializeTimelineSortable() {
         const container = document.getElementById('timelineContainer');
         if (!container) return;
-
+        
         if (this.sortableInstance) {
             this.sortableInstance.destroy();
         }
-
+        
         this.sortableInstance = Sortable.create(container, {
             animation: 200,
             ghostClass: 'sortable-ghost',
@@ -428,8 +439,8 @@ class CampaignManager {
                 this.updateTimelineOrder();
             }
         });
-
-        console.log('Timeline sortable initialized for grid layout');
+        
+        console.log('Timeline sortable initialized');
     }
     
     async updateTimelineOrder() {
@@ -787,6 +798,105 @@ class CampaignManager {
         this.confirmCallback = null;
     }
 
+    openSessionDetailModal(sessionId) {
+        console.log('Opening session detail modal for:', sessionId);
+        const session = this.data.timeline[sessionId];
+        if (!session) return;
+
+        const modal = document.getElementById('sessionDetailModal');
+        const title = document.getElementById('sessionDetailTitle');
+        const meta = document.getElementById('sessionDetailMeta');
+        const content = document.getElementById('sessionDetailContent');
+        const tags = document.getElementById('sessionDetailTags');
+        const editBtn = document.getElementById('editSessionBtn');
+        const deleteBtn = document.getElementById('deleteSessionBtn');
+
+        if (!modal) return;
+
+        // Popola il contenuto del modal
+        if (title) title.textContent = session.title || 'Sessione senza titolo';
+        if (meta) meta.textContent = `Sessione ${session.day || session.session || 1}`;
+        if (content) content.innerHTML = session.content ? session.content.replace(/\n/g, '<br>') : 'Nessun contenuto disponibile';
+
+        // Popola i tag
+        if (tags) {
+            const allTags = [];
+
+            if (session.characters && session.characters.length > 0) {
+                session.characters.forEach(charId => {
+                    const char = this.data.characters[charId];
+                    if (char) {
+                        allTags.push(`<span class="session-detail-tag characters" data-type="characters" data-id="${charId}" data-name="${char.name}">👤 ${char.name}</span>`);
+                    }
+                });
+            }
+
+            if (session.locations && session.locations.length > 0) {
+                session.locations.forEach(locId => {
+                    const loc = this.data.locations[locId];
+                    if (loc) {
+                        allTags.push(`<span class="session-detail-tag locations" data-type="locations" data-id="${locId}" data-name="${loc.name}">🏞️ ${loc.name}</span>`);
+                    }
+                });
+            }
+
+            if (session.organizations && session.organizations.length > 0) {
+                session.organizations.forEach(orgId => {
+                    const org = this.data.organizations[orgId];
+                    if (org) {
+                        allTags.push(`<span class="session-detail-tag organizations" data-type="organizations" data-id="${orgId}" data-name="${org.name}">⚜️ ${org.name}</span>`);
+                    }
+                });
+            }
+
+            tags.innerHTML = allTags.join('');
+
+            // Aggiungi event listeners ai tag
+            tags.querySelectorAll('.session-detail-tag').forEach(tag => {
+                tag.addEventListener('click', (e) => {
+                    const type = e.target.dataset.type;
+                    const name = e.target.dataset.name;
+                    this.closeSessionDetailModal();
+                    this.switchTab(type);
+                    setTimeout(() => {
+                        const cards = document.querySelectorAll(`#${type}Container .card-title`);
+                        cards.forEach(card => {
+                            if (card.textContent.trim() === name) {
+                                card.scrollIntoView({behavior: 'smooth', block: 'center'});
+                                card.parentElement.classList.add('highlight');
+                                setTimeout(() => card.parentElement.classList.remove('highlight'), 1500);
+                            }
+                        });
+                    }, 250);
+                });
+            });
+        }
+
+        // Event listeners per i bottoni (solo per master)
+        if (editBtn) {
+            editBtn.onclick = () => {
+                this.closeSessionDetailModal();
+                this.openEntityModal('timeline', sessionId);
+            };
+        }
+
+        if (deleteBtn) {
+            deleteBtn.onclick = () => {
+                this.closeSessionDetailModal();
+                this.deleteEntity('timeline', sessionId);
+            };
+        }
+
+        modal.classList.remove('hidden');
+    }
+
+    closeSessionDetailModal() {
+        const modal = document.getElementById('sessionDetailModal');
+        if (modal) {
+            modal.classList.add('hidden');
+        }
+    }
+
     openSessionPresenceModal(entityType, entityId) {
         console.log('Opening session presence modal for:', entityType, entityId);
 
@@ -861,6 +971,15 @@ class CampaignManager {
             'organizations': 'organizations'
         };
         return mapping[entityType] || 'characters';
+    }
+
+    getEntityTypeName(entityType) {
+        const mapping = {
+            'characters': 'Personaggio',
+            'locations': 'Luogo', 
+            'organizations': 'Organizzazione'
+        };
+        return mapping[entityType] || 'Entità';
     }
 
     async saveSessionPresences() {
@@ -1259,7 +1378,42 @@ class CampaignManager {
         event.target.value = '';
     }
 
-        
+    enrichTimelineData() {
+  const enrichedTimeline = {};
+
+  Object.entries(this.data.timeline).forEach(([dayKey, day]) => {
+    const enrichedChars = (day.characters || []).map(charName => {
+      const foundCharEntry = Object.entries(this.data.characters || {}).find(([key, c]) => c.name === charName);
+      const foundCharKey = foundCharEntry ? foundCharEntry[0] : charName;
+      const foundChar = foundCharEntry ? foundCharEntry[1] : { id: charName, name: charName };
+      return { id: foundCharKey, name: foundChar.name };
+    });
+
+    const enrichedLocs = (day.locations || []).map(locName => {
+      const foundLocEntry = Object.entries(this.data.locations || {}).find(([key, l]) => l.name === locName);
+      const foundLocKey = foundLocEntry ? foundLocEntry[0] : locName;
+      const foundLoc = foundLocEntry ? foundLocEntry[1] : { id: locName, name: locName };
+      return { id: foundLocKey, name: foundLoc.name };
+    });
+
+    const enrichedOrgs = (day.organizations || []).map(orgName => {
+      const foundOrgEntry = Object.entries(this.data.organizations || {}).find(([key, o]) => o.name === orgName);
+      const foundOrgKey = foundOrgEntry ? foundOrgEntry[0] : orgName;
+      const foundOrg = foundOrgEntry ? foundOrgEntry[1] : { id: orgName, name: orgName };
+      return { id: foundOrgKey, name: foundOrg.name };
+    });
+
+    enrichedTimeline[dayKey] = {
+      ...day,
+      characters: enrichedChars,
+      locations: enrichedLocs,
+      organizations: enrichedOrgs,
+    };
+  });
+
+  this.data.timeline = enrichedTimeline;
+}
+    
     renderTimeline() {
         console.log('Rendering timeline...');
         const container = document.getElementById('timelineContainer');
@@ -1332,6 +1486,14 @@ class CampaignManager {
                 <div class="session-summary">${summary}</div>
                 <div class="session-tags">${tagsHtml}${allTags.length > 6 ? '<span class="session-tag">+' + (allTags.length - 6) + '</span>' : ''}</div>
             `;
+
+            // **IMPORTANTE: Event listener per aprire il modal al click sulla sessione (TUTTI gli utenti)**
+            sessionElement.addEventListener('click', (e) => {
+                // Previeni il click se si clicca su un tag
+                if (!e.target.classList.contains('session-tag')) {
+                    this.openSessionDetailModal(session.id);
+                }
+            });
 
             // Event listener per i tag cliccabili
             sessionElement.querySelectorAll('.session-tag').forEach(tagEl => {
@@ -1649,7 +1811,6 @@ const campaignManager = new CampaignManager();
 
 // Make it globally available for onclick handlers
 window.campaignManager = campaignManager;
-
 
 
 

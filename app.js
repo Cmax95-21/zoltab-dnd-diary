@@ -177,7 +177,7 @@ class CampaignManager {
             });
         });
 
-        
+
 
         // Session presence modal listeners
         const saveSessionPresence = document.getElementById('saveSessionPresence');
@@ -222,7 +222,7 @@ class CampaignManager {
 
     setupFirebaseListeners() {
         console.log('Setting up Firebase listeners...');
-        
+
         // Listen for timeline changes
         const timelineRef = ref(database, 'timeline');
         onValue(timelineRef, (snapshot) => {
@@ -232,7 +232,7 @@ class CampaignManager {
         }, (error) => {
             console.error('Timeline listener error:', error);
         });
-        
+
         // Listen for characters changes
         const charactersRef = ref(database, 'characters');
         onValue(charactersRef, (snapshot) => {
@@ -242,7 +242,7 @@ class CampaignManager {
         }, (error) => {
             console.error('Characters listener error:', error);
         });
-        
+
         // Listen for locations changes
         const locationsRef = ref(database, 'locations');
         onValue(locationsRef, (snapshot) => {
@@ -252,7 +252,7 @@ class CampaignManager {
         }, (error) => {
             console.error('Locations listener error:', error);
         });
-        
+
         // Listen for quests changes
         const questsRef = ref(database, 'quests');
         onValue(questsRef, (snapshot) => {
@@ -262,7 +262,7 @@ class CampaignManager {
         }, (error) => {
             console.error('Quests listener error:', error);
         });
-        
+
         // Listen for organizations changes
         const organizationsRef = ref(database, 'organizations');
         onValue(organizationsRef, (snapshot) => {
@@ -272,7 +272,7 @@ class CampaignManager {
         }, (error) => {
             console.error('Organizations listener error:', error);
         });
-        
+
         // Listen for map changes
         const mapRef = ref(database, 'map');
         onValue(mapRef, (snapshot) => {
@@ -283,12 +283,12 @@ class CampaignManager {
             console.error('Map listener error:', error);
         });
     }
-    
+
     async initializeSampleData() {
         // Check if we have any data, if not, add some sample data
         if (Object.keys(this.data.timeline).length === 0) {
             console.log('Initializing sample data...');
-            
+
             const sampleData = {
                 timeline: {
                     session1: {
@@ -323,7 +323,7 @@ class CampaignManager {
                     }
                 }
             };
-            
+
             try {
                 await update(ref(database), sampleData);
                 console.log('Sample data initialized');
@@ -332,7 +332,7 @@ class CampaignManager {
             }
         }
     }
-    
+
     showNicknameModal() {
         const modal = document.getElementById('nicknameModal');
         const input = document.getElementById('nicknameInput');
@@ -341,34 +341,34 @@ class CampaignManager {
             input.focus();
         }
     }
-    
+
     setNickname() {
         const nicknameInput = document.getElementById('nicknameInput');
         const nickname = nicknameInput ? nicknameInput.value.trim() : '';
-        
+
         if (nickname) {
             this.currentUser = nickname;
             const userNickname = document.getElementById('userNickname');
             if (userNickname) {
                 userNickname.textContent = nickname;
             }
-            
+
             const modal = document.getElementById('nicknameModal');
             const mainApp = document.getElementById('mainApp');
-            
+
             if (modal) modal.classList.add('hidden');
             if (mainApp) mainApp.classList.remove('hidden');
-            
+
             console.log(`User set as: ${nickname}`);
         } else {
             alert('Inserisci un nickname valido');
         }
     }
-    
+
     toggleMasterMode(isMaster) {
         console.log(`Toggle master mode: ${isMaster}`);
         this.isMaster = isMaster;
-        
+
         // Add or remove the master-mode class from body
         const body = document.body;
         if (isMaster) {
@@ -376,34 +376,34 @@ class CampaignManager {
         } else {
             body.classList.remove('master-mode');
         }
-        
+
         // Update sortable instance if timeline is active
         if (this.currentTab === 'timeline' && this.sortableInstance) {
             this.sortableInstance.option('disabled', !isMaster);
         }
     }
-    
+
     switchTab(tabName) {
         console.log(`Switching to tab: ${tabName}`);
-        
+
         // Update active tab
         document.querySelectorAll('.nav-tab').forEach(tab => tab.classList.remove('active'));
         const activeTab = document.querySelector(`[data-tab="${tabName}"]`);
         if (activeTab) activeTab.classList.add('active');
-        
+
         // Update active content
         document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
         const activeContent = document.getElementById(tabName);
         if (activeContent) activeContent.classList.add('active');
-        
+
         this.currentTab = tabName;
-        
+
         // Initialize timeline sortable if switching to timeline
         if (tabName === 'timeline') {
             setTimeout(() => this.initializeTimelineSortable(), 100);
         }
     }
-    
+
     initializeTimelineSortable() {
         const container = document.getElementById('timelineContainer');
         if (!container) return;
@@ -424,7 +424,7 @@ class CampaignManager {
 
         console.log('Timeline sortable initialized for grid layout');
     }
-    
+
     async updateTimelineOrder() {
         const timelineItems = document.querySelectorAll('.timeline-session');
         const updates = {};
@@ -443,16 +443,16 @@ class CampaignManager {
             console.error('Error updating timeline order:', error);
         }
     }
-    
+
     handleSearch(query) {
         if (!query.trim()) {
             this.clearSearch();
             return;
         }
-        
+
         const normalizedQuery = query.toLowerCase();
         console.log(`Searching for: ${normalizedQuery}`);
-        
+
         // Search in all data sections
         document.querySelectorAll('.card, .timeline-day').forEach(element => {
             const text = element.textContent.toLowerCase();
@@ -465,37 +465,37 @@ class CampaignManager {
             }
         });
     }
-    
+
     clearSearch() {
         document.querySelectorAll('.card, .timeline-day').forEach(element => {
             element.style.display = '';
             element.classList.remove('search-highlight');
         });
     }
-    
+
     openEntityModal(entityType, entityId = null) {
         console.log(`Opening entity modal for: ${entityType}, ID: ${entityId}`);
-        
+
         this.currentEntityType = entityType;
         this.currentEntityId = entityId;
-        
+
         const modal = document.getElementById('entityModal');
         const title = document.getElementById('entityModalTitle');
         const form = document.getElementById('entityForm');
         const additionalFields = document.getElementById('additionalFields');
         const avatarGroup = document.getElementById('avatarUploadGroup');
-        
+
         if (!modal || !title || !form) {
             console.error('Modal elements not found');
             return;
         }
-        
+
         // Reset form
         form.reset();
         if (additionalFields) additionalFields.innerHTML = '';
         const avatarPreview = document.getElementById('avatarPreview');
         if (avatarPreview) avatarPreview.innerHTML = '';
-        
+
         // Set title
         if (entityId) {
             title.textContent = `Modifica ${this.getEntityTypeName(entityType)}`;
@@ -503,12 +503,12 @@ class CampaignManager {
         } else {
             title.textContent = `Aggiungi ${this.getEntityTypeName(entityType)}`;
         }
-        
+
         // Add additional fields based on entity type
         if (additionalFields) {
             this.addEntitySpecificFields(entityType, additionalFields);
         }
-        
+
         // Show/hide avatar upload based on entity type
         if (avatarGroup) {
             if (entityType === 'characters') {
@@ -517,16 +517,16 @@ class CampaignManager {
                 avatarGroup.classList.add('hidden');
             }
         }
-        
+
         modal.classList.remove('hidden');
-        
+
         // Focus on name input
         const nameInput = document.getElementById('entityName');
         if (nameInput) {
             setTimeout(() => nameInput.focus(), 100);
         }
     }
-    
+
     getEntityTypeName(type) {
         const names = {
             timeline: 'Sessione',
@@ -537,7 +537,7 @@ class CampaignManager {
         };
         return names[type] || type;
     }
-    
+
     addEntitySpecificFields(entityType, container) {
         switch (entityType) {
             case 'characters':
@@ -591,17 +591,17 @@ class CampaignManager {
                 break;
         }
     }
-    
+
     populateEntityForm(entityType, entityId) {
         const entity = this.data[entityType][entityId];
         if (!entity) return;
-        
+
         const nameInput = document.getElementById('entityName');
         const descriptionInput = document.getElementById('entityDescription');
-        
+
         if (nameInput) nameInput.value = entity.name || entity.title || '';
         if (descriptionInput) descriptionInput.value = entity.description || entity.content || '';
-        
+
         // Populate specific fields
         switch (entityType) {
             case 'characters':
@@ -631,31 +631,31 @@ class CampaignManager {
                 break;
         }
     }
-    
+
     async saveEntity() {
         console.log('Saving entity...');
         this.showLoading();
-        
+
         try {
             const nameInput = document.getElementById('entityName');
             const descriptionInput = document.getElementById('entityDescription');
-            
+
             const name = nameInput ? nameInput.value.trim() : '';
             const description = descriptionInput ? descriptionInput.value.trim() : '';
-            
+
             if (!name) {
                 alert('Il nome è obbligatorio');
                 this.hideLoading();
                 return;
             }
-            
+
             let entityData = {
                 name: name,
                 description: description,
                 updatedBy: this.currentUser,
                 updatedAt: Date.now()
             };
-            
+
             // Add specific fields
             switch (this.currentEntityType) {
                 case 'characters':
@@ -691,19 +691,19 @@ class CampaignManager {
                     };
                     break;
             }
-            
+
             // Handle avatar upload for characters
             if (this.currentEntityType === 'characters') {
                 const avatarInput = document.getElementById('avatarUpload');
                 const avatarFile = avatarInput ? avatarInput.files[0] : null;
-                
+
                 if (avatarFile) {
                     entityData.avatar = await this.uploadAvatar(avatarFile, name);
                 } else if (this.currentEntityId && this.data.characters[this.currentEntityId]?.avatar) {
                     entityData.avatar = this.data.characters[this.currentEntityId].avatar;
                 }
             }
-            
+
             // Save to Firebase
             let entityRef;
             if (this.currentEntityId) {
@@ -719,17 +719,17 @@ class CampaignManager {
                 await set(entityRef, entityData);
                 console.log('Entity created successfully');
             }
-            
+
             this.closeEntityModal();
-            
+
         } catch (error) {
             console.error('Error saving entity:', error);
             alert('Errore durante il salvataggio: ' + error.message);
         }
-        
+
         this.hideLoading();
     }
-    
+
     closeEntityModal() {
         const modal = document.getElementById('entityModal');
         if (modal) {
@@ -738,7 +738,7 @@ class CampaignManager {
         this.currentEntityType = '';
         this.currentEntityId = '';
     }
-    
+
     async deleteEntity(entityType, entityId) {
         this.showConfirmModal(
             'Sei sicuro di voler eliminare questo elemento?',
@@ -749,7 +749,7 @@ class CampaignManager {
                     if (entityType === 'characters' && this.data.characters[entityId]?.avatar) {
                         await this.deleteAvatar(this.data.characters[entityId].avatar);
                     }
-                    
+
                     await remove(ref(database, `${entityType}/${entityId}`));
                     console.log('Entity deleted successfully');
                 } catch (error) {
@@ -760,18 +760,18 @@ class CampaignManager {
             }
         );
     }
-    
+
     showConfirmModal(message, onConfirm) {
         const modal = document.getElementById('confirmModal');
         const messageElement = document.getElementById('confirmMessage');
-        
+
         if (modal && messageElement) {
             messageElement.textContent = message;
             modal.classList.remove('hidden');
             this.confirmCallback = onConfirm;
         }
     }
-    
+
     closeConfirmModal() {
         const modal = document.getElementById('confirmModal');
         if (modal) {
@@ -908,7 +908,7 @@ class CampaignManager {
     goToSession(sessionId) {
         this.closeSessionPresenceModal();
         this.switchTab('timeline');
-        
+
         setTimeout(() => {
             const sessionElement = document.querySelector(`[data-session-id="${sessionId}"]`);
             if (sessionElement) {
@@ -918,20 +918,20 @@ class CampaignManager {
             }
         }, 250);
     }
-    
+
     executeConfirmedAction() {
         if (this.confirmCallback) {
             this.confirmCallback();
             this.closeConfirmModal();
         }
     }
-    
+
     async uploadAvatar(file, characterName) {
         const avatarRef = storageRef(storage, `avatars/${Date.now()}_${characterName}`);
         const snapshot = await uploadBytes(avatarRef, file);
         return await getDownloadURL(snapshot.ref);
     }
-    
+
     async deleteAvatar(avatarUrl) {
         try {
             const avatarRef = storageRef(storage, avatarUrl);
@@ -940,7 +940,7 @@ class CampaignManager {
             console.warn('Could not delete avatar:', error);
         }
     }
-    
+
     previewAvatar(file) {
         if (file) {
             const reader = new FileReader();
@@ -948,39 +948,39 @@ class CampaignManager {
             reader.readAsDataURL(file);
         }
     }
-    
+
     showAvatarPreview(src) {
         const preview = document.getElementById('avatarPreview');
         if (preview) {
             preview.innerHTML = `<img src="${src}" alt="Avatar Preview">`;
         }
     }
-    
+
     async uploadMap(file) {
         if (!file) return;
-        
+
         this.showLoading();
         try {
             const mapRef = storageRef(storage, `maps/campaign_map_${Date.now()}`);
             const snapshot = await uploadBytes(mapRef, file);
             const url = await getDownloadURL(snapshot.ref);
-            
+
             await set(ref(database, 'map'), {
                 url: url,
                 name: file.name,
                 uploadedBy: this.currentUser,
                 uploadedAt: Date.now()
             });
-            
+
             console.log('Map uploaded successfully');
-            
+
         } catch (error) {
             console.error('Error uploading map:', error);
             alert('Errore durante il caricamento della mappa: ' + error.message);
         }
         this.hideLoading();
     }
-    
+
     downloadMap() {
         if (this.data.map?.url) {
             const link = document.createElement('a');
@@ -992,29 +992,29 @@ class CampaignManager {
             alert('Nessuna mappa disponibile per il download');
         }
     }
-    
+
     parseSession() {
         const titleInput = document.getElementById('sessionTitle');
         const contentInput = document.getElementById('sessionContent');
-        
+
         const title = titleInput ? titleInput.value.trim() : '';
         const content = contentInput ? contentInput.value.trim() : '';
-        
+
         if (!content) {
             alert('Inserisci il contenuto della sessione per l\'analisi');
             return;
         }
-        
+
         console.log('Parsing session content...');
-        
+
         const patterns = [
             /\b([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)\b/g,
             /(?:a|in|da|verso|per|presso)\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)/g,
             /(?:Ordine|Regno|Impero|Gilda|Culto)\s+(?:di\s+|del\s+|della\s+)?([A-Z][a-z]+)/g
         ];
-        
+
         const detectedEntities = new Set();
-        
+
         patterns.forEach(pattern => {
             let match;
             while ((match = pattern.exec(content)) !== null) {
@@ -1024,10 +1024,10 @@ class CampaignManager {
                 }
             }
         });
-        
+
         this.showParseResults(Array.from(detectedEntities), title, content);
     }
-    
+
     isCommonWord(word) {
         const commonWords = [
             'Dopo', 'Prima', 'Durante', 'Mentre', 'Quando', 'Dove', 'Come', 'Perché',
@@ -1036,15 +1036,15 @@ class CampaignManager {
         ];
         return commonWords.includes(word);
     }
-    
+
     showParseResults(entities, title, content) {
         const modal = document.getElementById('parseModal');
         const resultsList = document.getElementById('parseResultsList');
-        
+
         if (!modal || !resultsList) return;
-        
+
         resultsList.innerHTML = '';
-        
+
         if (entities.length === 0) {
             resultsList.innerHTML = '<p>Nessuna entità rilevata nel testo.</p>';
         } else {
@@ -1070,11 +1070,11 @@ class CampaignManager {
                 resultsList.appendChild(div);
             });
         }
-        
+
         this.parseData = { title, content, entities };
         modal.classList.remove('hidden');
     }
-    
+
     closeParseModal() {
         const modal = document.getElementById('parseModal');
         if (modal) {
@@ -1082,16 +1082,16 @@ class CampaignManager {
         }
         this.parseData = null;
     }
-    
+
     async confirmParsedEntities() {
         if (!this.parseData) return;
-        
+
         this.showLoading();
-        
+
         try {
             const { title, content } = this.parseData;
             const checkedEntities = document.querySelectorAll('.entity-checkbox:checked');
-            
+
             // Create timeline entry
             const timelineRef = push(ref(database, 'timeline'));
             const timelineData = {
@@ -1106,13 +1106,13 @@ class CampaignManager {
                 createdBy: this.currentUser,
                 createdAt: Date.now()
             };
-            
+
             // Create selected entities
             for (const checkbox of checkedEntities) {
                 const entityName = checkbox.dataset.entity;
                 const entityTypeSelect = document.querySelector(`[data-entity="${entityName}"]`);
                 const entityType = entityTypeSelect ? entityTypeSelect.value : 'characters';
-                
+
                 const entityRef = push(ref(database, entityType));
                 const entityData = {
                     id: entityRef.key,
@@ -1121,7 +1121,7 @@ class CampaignManager {
                     createdBy: this.currentUser,
                     createdAt: Date.now()
                 };
-                
+
                 // Add specific fields based on type
                 if (entityType === 'characters') {
                     entityData.race = '';
@@ -1135,31 +1135,31 @@ class CampaignManager {
                 } else if (entityType === 'quests') {
                     entityData.status = 'active';
                 }
-                
+
                 await set(entityRef, entityData);
             }
-            
+
             await set(timelineRef, timelineData);
-            
+
             // Clear session form
             const titleInput = document.getElementById('sessionTitle');
             const contentInput = document.getElementById('sessionContent');
             if (titleInput) titleInput.value = '';
             if (contentInput) contentInput.value = '';
-            
+
             this.closeParseModal();
             this.switchTab('timeline');
-            
+
             console.log('Parsed entities created successfully');
-            
+
         } catch (error) {
             console.error('Error creating parsed entities:', error);
             alert('Errore durante la creazione delle entità: ' + error.message);
         }
-        
+
         this.hideLoading();
     }
-    
+
     async saveData() {
         this.showLoading();
         try {
@@ -1173,10 +1173,10 @@ class CampaignManager {
         }
         this.hideLoading();
     }
-    
+
     exportData() {
         console.log('Exporting data...');
-        
+
         const exportData = {
             timeline: this.data.timeline,
             characters: this.data.characters,
@@ -1187,7 +1187,7 @@ class CampaignManager {
             exportedBy: this.currentUser,
             exportedAt: new Date().toISOString()
         };
-        
+
         const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
         const url = URL.createObjectURL(blob);
         const link = document.createElement('a');
@@ -1195,38 +1195,38 @@ class CampaignManager {
         link.download = `campaign_backup_${Date.now()}.json`;
         link.click();
         URL.revokeObjectURL(url);
-        
+
         console.log('Data exported successfully');
     }
-    
+
     importData() {
         const input = document.getElementById('restoreFileInput');
         if (input) {
             input.click();
         }
     }
-    
+
     async handleRestoreFile(event) {
         const file = event.target.files[0];
         if (!file) return;
-        
+
         console.log('Restoring data from file...');
         this.showLoading();
-        
+
         try {
             const text = await file.text();
             const importData = JSON.parse(text);
-            
+
             // Validate data structure
             const requiredSections = ['timeline', 'characters', 'locations', 'quests', 'organizations'];
             const hasValidStructure = requiredSections.every(section => 
                 importData.hasOwnProperty(section)
             );
-            
+
             if (!hasValidStructure) {
                 throw new Error('File di backup non valido');
             }
-            
+
             // Import data to Firebase
             const updates = {};
             requiredSections.forEach(section => {
@@ -1234,25 +1234,185 @@ class CampaignManager {
                     updates[section] = importData[section];
                 }
             });
-            
+
             if (importData.map) {
                 updates.map = importData.map;
             }
-            
+
             await update(ref(database), updates);
             alert('Dati ripristinati con successo!');
             console.log('Data restored successfully');
-            
+
         } catch (error) {
             console.error('Error importing data:', error);
             alert('Errore durante il ripristino: ' + error.message);
         }
-        
+
         this.hideLoading();
         event.target.value = '';
     }
 
-        
+    // NUOVA FUNZIONE: Espandi i tag nascosti in una sessione
+    expandSessionTags(sessionElement) {
+        console.log('Espandendo i tag della sessione...');
+
+        const tagsContainer = sessionElement.querySelector('.session-tags');
+        if (!tagsContainer) return;
+
+        const sessionId = sessionElement.dataset.sessionId;
+        const session = this.data.timeline[sessionId];
+        if (!session) return;
+
+        // Ricrea tutti i tag (inclusi quelli nascosti)
+        const allTags = [];
+
+        // Gestione characters
+        if (session.characters && session.characters.length > 0) {
+            session.characters.forEach(charId => {
+                const char = this.data.characters[charId];
+                if (char) {
+                    allTags.push({name: char.name, type: 'characters', id: charId});
+                }
+            });
+        }
+
+        // Gestione locations
+        if (session.locations && session.locations.length > 0) {
+            session.locations.forEach(locId => {
+                const loc = this.data.locations[locId];
+                if (loc) {
+                    allTags.push({name: loc.name, type: 'locations', id: locId});
+                }
+            });
+        }
+
+        // Gestione organizations
+        if (session.organizations && session.organizations.length > 0) {
+            session.organizations.forEach(orgId => {
+                const org = this.data.organizations[orgId];
+                if (org) {
+                    allTags.push({name: org.name, type: 'organizations', id: orgId});
+                }
+            });
+        }
+
+        // Mostra tutti i tag + bottone per richiudere
+        const allTagsHtml = allTags.map(tag => 
+            `<span class="session-tag ${tag.type}" data-type="${tag.type}" data-id="${tag.id}" data-name="${tag.name}">${tag.name}</span>`
+        ).join('');
+
+        const collapseButton = `<span class="session-tag session-tag-collapse">Mostra meno</span>`;
+
+        tagsContainer.innerHTML = allTagsHtml + collapseButton;
+
+        // Aggiungi event listeners ai nuovi tag
+        this.attachSessionTagListeners(sessionElement);
+
+        // Aggiungi listener per il bottone "Mostra meno"
+        const collapseBtn = tagsContainer.querySelector('.session-tag-collapse');
+        if (collapseBtn) {
+            collapseBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                this.collapseSessionTags(sessionElement);
+            });
+        }
+    }
+
+    // NUOVA FUNZIONE: Richiudi i tag mostrando solo i primi 6
+    collapseSessionTags(sessionElement) {
+        console.log('Richiudendo i tag della sessione...');
+
+        const tagsContainer = sessionElement.querySelector('.session-tags');
+        if (!tagsContainer) return;
+
+        const sessionId = sessionElement.dataset.sessionId;
+        const session = this.data.timeline[sessionId];
+        if (!session) return;
+
+        // Ricrea la visualizzazione standard (max 6 tag)
+        const allTags = [];
+
+        // Gestione characters
+        if (session.characters && session.characters.length > 0) {
+            session.characters.forEach(charId => {
+                const char = this.data.characters[charId];
+                if (char) {
+                    allTags.push({name: char.name, type: 'characters', id: charId});
+                }
+            });
+        }
+
+        // Gestione locations
+        if (session.locations && session.locations.length > 0) {
+            session.locations.forEach(locId => {
+                const loc = this.data.locations[locId];
+                if (loc) {
+                    allTags.push({name: loc.name, type: 'locations', id: locId});
+                }
+            });
+        }
+
+        // Gestione organizations
+        if (session.organizations && session.organizations.length > 0) {
+            session.organizations.forEach(orgId => {
+                const org = this.data.organizations[orgId];
+                if (org) {
+                    allTags.push({name: org.name, type: 'organizations', id: orgId});
+                }
+            });
+        }
+
+        // Limita i tag mostrati a 6
+        const visibleTags = allTags.slice(0, 6);
+        const tagsHtml = visibleTags.map(tag => 
+            `<span class="session-tag ${tag.type}" data-type="${tag.type}" data-id="${tag.id}" data-name="${tag.name}">${tag.name}</span>`
+        ).join('');
+
+        tagsContainer.innerHTML = `${tagsHtml}${allTags.length > 6 ? '<span class="session-tag session-tag-more">+' + (allTags.length - 6) + '</span>' : ''}`;
+
+        // Aggiungi event listeners ai tag
+        this.attachSessionTagListeners(sessionElement);
+    }
+
+    // NUOVA FUNZIONE: Aggiungi event listeners ai tag di una sessione
+    attachSessionTagListeners(sessionElement) {
+        const tagsContainer = sessionElement.querySelector('.session-tags');
+        if (!tagsContainer) return;
+
+        // Event listener per i tag normali (cliccabili)
+        tagsContainer.querySelectorAll('.session-tag:not(.session-tag-more):not(.session-tag-collapse)').forEach(tagEl => {
+            tagEl.addEventListener('click', (e) => {
+                e.stopPropagation(); // Previeni il bubble up al parent
+                const type = tagEl.dataset.type;
+                const id = tagEl.dataset.id;
+                const name = tagEl.dataset.name;
+
+                if (type && name) {
+                    this.switchTab(type);
+                    setTimeout(() => {
+                        const cards = document.querySelectorAll(`#${type}Container .card-title`);
+                        cards.forEach(card => {
+                            if (card.textContent.trim() === name) {
+                                card.scrollIntoView({behavior: 'smooth', block: 'center'});
+                                card.parentElement.classList.add('highlight');
+                                setTimeout(() => card.parentElement.classList.remove('highlight'), 1500);
+                            }
+                        });
+                    }, 250);
+                }
+            });
+        });
+
+        // Event listener per il badge "+N" (espandi)
+        const expandBtn = tagsContainer.querySelector('.session-tag-more');
+        if (expandBtn) {
+            expandBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                this.expandSessionTags(sessionElement);
+            });
+        }
+    }
+
     renderTimeline() {
         console.log('Rendering timeline...');
         const container = document.getElementById('timelineContainer');
@@ -1319,47 +1479,27 @@ class CampaignManager {
                 `<span class="session-tag ${tag.type}" data-type="${tag.type}" data-id="${tag.id}" data-name="${tag.name}">${tag.name}</span>`
             ).join('');
 
+            // MODIFICA PRINCIPALE: Aggiungi classe specifica per il badge "+N"
             sessionElement.innerHTML = `
                 <div class="session-number">Sessione ${session.day || session.session || 1}</div>
                 <div class="session-title">${session.title || 'Sessione senza titolo'}</div>
                 <div class="session-summary">${summary}</div>
-                <div class="session-tags">${tagsHtml}${allTags.length > 6 ? '<span class="session-tag">+' + (allTags.length - 6) + '</span>' : ''}</div>
+                <div class="session-tags">${tagsHtml}${allTags.length > 6 ? '<span class="session-tag session-tag-more">+' + (allTags.length - 6) + '</span>' : ''}</div>
             `;
 
-            // MODIFICA PRINCIPALE: Aggiungere click listener per la sessione stessa
+            // Event listener per la sessione stessa (per aprire il dettaglio)
             sessionElement.addEventListener('click', (e) => {
                 // Se il click è su un tag, non aprire il dettaglio della sessione
                 if (e.target.classList.contains('session-tag')) {
                     return; // Il tag gestisce il proprio click
                 }
-                
+
                 // Apri il dettaglio della sessione
                 this.showSessionDetails(session);
             });
 
-            // Event listener per i tag cliccabili
-            sessionElement.querySelectorAll('.session-tag').forEach(tagEl => {
-                tagEl.addEventListener('click', (e) => {
-                    e.stopPropagation(); // Previeni il bubble up al parent
-                    const type = tagEl.dataset.type;
-                    const id = tagEl.dataset.id;
-                    const name = tagEl.dataset.name;
-
-                    if (type && name) {
-                        this.switchTab(type);
-                        setTimeout(() => {
-                            const cards = document.querySelectorAll(`#${type}Container .card-title`);
-                            cards.forEach(card => {
-                                if (card.textContent.trim() === name) {
-                                    card.scrollIntoView({behavior: 'smooth', block: 'center'});
-                                    card.parentElement.classList.add('highlight');
-                                    setTimeout(() => card.parentElement.classList.remove('highlight'), 1500);
-                                }
-                            });
-                        }, 250);
-                    }
-                });
-            });
+            // MODIFICA PRINCIPALE: Usa la nuova funzione per gestire i tag
+            this.attachSessionTagListeners(sessionElement);
 
             container.appendChild(sessionElement);
         });
@@ -1373,7 +1513,7 @@ class CampaignManager {
     // NUOVA FUNZIONE: Mostra i dettagli della sessione
     showSessionDetails(session) {
         console.log('Showing session details for:', session);
-        
+
         const modal = document.getElementById('entityViewModal');
         if (!modal) return;
 
@@ -1426,7 +1566,7 @@ class CampaignManager {
             });
         });
     }
-    
+
 	loadDaySummary(dayId) {
         const summaryRef = ref(database, `summaries/${dayId}`);
         onValue(summaryRef, (snapshot) => {
@@ -1531,7 +1671,7 @@ class CampaignManager {
             container.appendChild(card);
         });
     }
-    
+
     renderLocations() {
         const container = document.getElementById('locationsContainer');
         if (!container) return;
@@ -1560,24 +1700,24 @@ class CampaignManager {
             container.appendChild(card);
         });
     }
-    
+
     renderQuests() {
         const container = document.getElementById('questsContainer');
         if (!container) return;
-        
+
         container.innerHTML = '';
-        
+
         Object.values(this.data.quests).forEach(quest => {
             const card = document.createElement('div');
             card.className = 'card';
-            
+
             const statusClass = {
                 active: 'status--success',
                 completed: 'status--info',
                 failed: 'status--error',
                 paused: 'status--warning'
             }[quest.status] || 'status--info';
-            
+
             card.innerHTML = `
                 <div class="card-header">
                     <div>
@@ -1591,11 +1731,11 @@ class CampaignManager {
                     <button class="btn btn--small btn--danger" onclick="campaignManager.deleteEntity('quests', '${quest.id}')">Elimina</button>
                 </div>
             `;
-            
+
             container.appendChild(card);
         });
     }
-    
+
     renderOrganizations() {
         const container = document.getElementById('organizationsContainer');
         if (!container) return;
@@ -1624,18 +1764,18 @@ class CampaignManager {
             container.appendChild(card);
         });
     }
-    
+
     renderMap() {
         const container = document.getElementById('mapContainer');
         if (!container) return;
-        
+
         if (this.data.map?.url) {
             container.innerHTML = `<img src="${this.data.map.url}" class="map-image" alt="Campaign Map">`;
         } else {
             container.innerHTML = '<div class="map-placeholder">Nessuna mappa caricata</div>';
         }
     }
-    
+
     getQuestStatusText(status) {
         const statusTexts = {
             active: 'Attiva',
@@ -1645,14 +1785,14 @@ class CampaignManager {
         };
         return statusTexts[status] || 'Sconosciuto';
     }
-    
+
     showLoading() {
         const spinner = document.getElementById('loadingSpinner');
         if (spinner) {
             spinner.classList.remove('hidden');
         }
     }
-    
+
     hideLoading() {
         const spinner = document.getElementById('loadingSpinner');
         if (spinner) {

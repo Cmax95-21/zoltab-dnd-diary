@@ -233,31 +233,22 @@
         </div>
     </div>
 
-    <!-- SESSION DETAIL MODAL - NUOVO MODAL DEDICATO ALLE SESSIONI -->
+    <!-- Session Detail Modal - SEMPLIFICATO per mostrare solo il testo completo -->
     <div id="sessionDetailModal" class="modal hidden">
-        <div class="modal-content session-detail-content">
+        <div class="modal-content">
             <div class="modal-header">
                 <h3 id="sessionDetailTitle">Dettagli Sessione</h3>
-                <button class="modal-close" onclick="campaignManager.closeSessionDetailModal()">&times;</button>
+                <button class="modal-close">&times;</button>
             </div>
             <div class="modal-body">
                 <div class="session-detail-view">
-                    <div class="session-detail-meta">
-                        <span id="sessionDetailNumber" class="session-number-badge"></span>
-                        <span id="sessionDetailDate" class="session-date"></span>
-                    </div>
                     <div class="session-detail-content">
                         <div id="sessionDetailDescription" class="session-description"></div>
-                    </div>
-                    <div class="session-detail-entities">
-                        <h4>Entità coinvolte:</h4>
-                        <div id="sessionDetailEntities" class="session-entities-list"></div>
                     </div>
                 </div>
             </div>
             <div class="modal-footer">
-                <button id="editSessionBtn" class="btn btn--primary master-only" onclick="campaignManager.editSessionFromDetail()">Modifica Sessione</button>
-                <button id="closeSessionDetail" class="btn btn--secondary" onclick="campaignManager.closeSessionDetailModal()">Chiudi</button>
+                <button id="closeSessionDetail" class="btn btn--secondary">Chiudi</button>
             </div>
         </div>
     </div>

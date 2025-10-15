@@ -177,6 +177,8 @@ class CampaignManager {
             });
         });
 
+        
+
         // Session presence modal listeners
         const saveSessionPresence = document.getElementById('saveSessionPresence');
         const cancelSessionPresence = document.getElementById('cancelSessionPresence');
@@ -197,7 +199,6 @@ class CampaignManager {
                 }
             });
         }
-        
         console.log('Event listeners setup complete');
     }
 
@@ -731,28 +732,33 @@ class CampaignManager {
     
     closeEntityModal() {
         const modal = document.getElementById('entityModal');
-        if (modal) modal.classList.add('hidden');
+        if (modal) {
+            modal.classList.add('hidden');
+        }
         this.currentEntityType = '';
         this.currentEntityId = '';
     }
     
     async deleteEntity(entityType, entityId) {
-        this.showConfirmModal('Sei sicuro di voler eliminare questo elemento?', async () => {
-            this.showLoading();
-            try {
-                // Delete avatar if it's a character
-                if (entityType === 'characters' && this.data.characters[entityId]?.avatar) {
-                    await this.deleteAvatar(this.data.characters[entityId].avatar);
+        this.showConfirmModal(
+            'Sei sicuro di voler eliminare questo elemento?',
+            async () => {
+                this.showLoading();
+                try {
+                    // Delete avatar if it's a character
+                    if (entityType === 'characters' && this.data.characters[entityId]?.avatar) {
+                        await this.deleteAvatar(this.data.characters[entityId].avatar);
+                    }
+                    
+                    await remove(ref(database, `${entityType}/${entityId}`));
+                    console.log('Entity deleted successfully');
+                } catch (error) {
+                    console.error('Error deleting entity:', error);
+                    alert('Errore durante l\'eliminazione: ' + error.message);
                 }
-                
-                await remove(ref(database, `${entityType}/${entityId}`));
-                console.log('Entity deleted successfully');
-            } catch (error) {
-                console.error('Error deleting entity:', error);
-                alert('Errore durante l\'eliminazione: ' + error.message);
+                this.hideLoading();
             }
-            this.hideLoading();
-        });
+        );
     }
     
     showConfirmModal(message, onConfirm) {
@@ -768,45 +774,48 @@ class CampaignManager {
     
     closeConfirmModal() {
         const modal = document.getElementById('confirmModal');
-        if (modal) modal.classList.add('hidden');
+        if (modal) {
+            modal.classList.add('hidden');
+        }
         this.confirmCallback = null;
     }
 
     openSessionPresenceModal(entityType, entityId) {
         console.log('Opening session presence modal for:', entityType, entityId);
-        
+
         this.currentEntityForSessions = entityId;
         this.currentEntityTypeForSessions = entityType;
-        
+
         const entity = this.data[entityType][entityId];
         if (!entity) return;
-        
+
         const modal = document.getElementById('sessionPresenceModal');
         const title = document.getElementById('sessionPresenceTitle');
         const entityName = document.getElementById('entityNameInModal');
         const entityTypeEl = document.getElementById('entityTypeInModal');
         const checkboxList = document.getElementById('sessionsCheckboxList');
-        
+
         if (!modal || !checkboxList) return;
-        
+
         // Imposta titolo e info entità
-        if (title) title.textContent = `Gestisci presenze - ${entity.name}`;
+        if (title) title.textContent = `Gestisci presenze: ${entity.name}`;
         if (entityName) entityName.textContent = entity.name;
         if (entityTypeEl) entityTypeEl.textContent = this.getEntityTypeName(entityType);
-        
+
         // Crea la lista delle sessioni con checkbox
         checkboxList.innerHTML = '';
-        
+
         const sessions = Object.values(this.data.timeline).sort((a, b) => (a.order || 0) - (b.order || 0));
-        
+
         if (sessions.length === 0) {
             checkboxList.innerHTML = '<p class="empty-state">Nessuna sessione disponibile</p>';
         } else {
             sessions.forEach(session => {
                 const isPresent = this.isEntityPresentInSession(entityType, entityId, session);
-                
+
                 const checkboxItem = document.createElement('div');
                 checkboxItem.className = 'session-checkbox-item';
+
                 checkboxItem.innerHTML = `
                     <input type="checkbox" id="session-${session.id}" ${isPresent ? 'checked' : ''} data-session-id="${session.id}">
                     <div class="session-checkbox-info">
@@ -815,82 +824,84 @@ class CampaignManager {
                     </div>
                     <span class="session-presence-link" onclick="campaignManager.goToSession('${session.id}')">Vai alla sessione</span>
                 `;
-                
+
                 checkboxList.appendChild(checkboxItem);
             });
         }
-        
+
         modal.classList.remove('hidden');
     }
-    
+
     closeSessionPresenceModal() {
         const modal = document.getElementById('sessionPresenceModal');
-        if (modal) modal.classList.add('hidden');
+        if (modal) {
+            modal.classList.add('hidden');
+        }
         this.currentEntityForSessions = null;
         this.currentEntityTypeForSessions = null;
     }
-    
+
     isEntityPresentInSession(entityType, entityId, session) {
         const arrayName = this.getSessionArrayName(entityType);
-        const sessionArray = session[arrayName];
+        const sessionArray = session[arrayName] || [];
         return sessionArray.includes(entityId);
     }
-    
+
     getSessionArrayName(entityType) {
         const mapping = {
             'characters': 'characters',
-            'locations': 'locations',
+            'locations': 'locations', 
             'organizations': 'organizations'
         };
         return mapping[entityType] || 'characters';
     }
-    
+
     async saveSessionPresences() {
         if (!this.currentEntityForSessions || !this.currentEntityTypeForSessions) return;
-        
+
         console.log('Saving session presences...');
         this.showLoading();
-        
+
         try {
             const checkboxes = document.querySelectorAll('#sessionsCheckboxList input[type="checkbox"]');
             const updates = {};
-            
+
             checkboxes.forEach(checkbox => {
                 const sessionId = checkbox.dataset.sessionId;
                 const isChecked = checkbox.checked;
                 const arrayName = this.getSessionArrayName(this.currentEntityTypeForSessions);
-                
+
                 if (this.data.timeline[sessionId]) {
-                    const currentArray = this.data.timeline[sessionId][arrayName];
+                    const currentArray = this.data.timeline[sessionId][arrayName] || [];
                     let newArray = [...currentArray];
-                    
+
                     const isCurrentlyPresent = newArray.includes(this.currentEntityForSessions);
-                    
+
                     if (isChecked && !isCurrentlyPresent) {
                         // Aggiungi l'entità alla sessione
                         newArray.push(this.currentEntityForSessions);
                     } else if (!isChecked && isCurrentlyPresent) {
-                        // Rimuovi l'entità dalla sessione
+                        // Rimuovi l'entità dalla sessione  
                         newArray = newArray.filter(id => id !== this.currentEntityForSessions);
                     }
-                    
+
                     updates[`timeline/${sessionId}/${arrayName}`] = newArray;
                 }
             });
-            
+
             // Salva le modifiche su Firebase
             if (Object.keys(updates).length > 0) {
                 await update(ref(database), updates);
                 console.log('Session presences updated successfully');
             }
-            
+
             this.closeSessionPresenceModal();
-            
+
         } catch (error) {
             console.error('Error saving session presences:', error);
             alert('Errore durante il salvataggio delle presenze: ' + error.message);
         }
-        
+
         this.hideLoading();
     }
 
@@ -911,8 +922,8 @@ class CampaignManager {
     executeConfirmedAction() {
         if (this.confirmCallback) {
             this.confirmCallback();
+            this.closeConfirmModal();
         }
-        this.closeConfirmModal();
     }
     
     async uploadAvatar(file, characterName) {
@@ -933,9 +944,7 @@ class CampaignManager {
     previewAvatar(file) {
         if (file) {
             const reader = new FileReader();
-            reader.onload = (e) => {
-                this.showAvatarPreview(e.target.result);
-            };
+            reader.onload = (e) => this.showAvatarPreview(e.target.result);
             reader.readAsDataURL(file);
         }
     }
@@ -943,7 +952,7 @@ class CampaignManager {
     showAvatarPreview(src) {
         const preview = document.getElementById('avatarPreview');
         if (preview) {
-            preview.innerHTML = `<img src="${src}" alt="Avatar Preview" style="max-width: 100px; border-radius: 50%;">`;
+            preview.innerHTML = `<img src="${src}" alt="Avatar Preview">`;
         }
     }
     
@@ -951,7 +960,6 @@ class CampaignManager {
         if (!file) return;
         
         this.showLoading();
-        
         try {
             const mapRef = storageRef(storage, `maps/campaign_map_${Date.now()}`);
             const snapshot = await uploadBytes(mapRef, file);
@@ -965,11 +973,11 @@ class CampaignManager {
             });
             
             console.log('Map uploaded successfully');
+            
         } catch (error) {
             console.error('Error uploading map:', error);
             alert('Errore durante il caricamento della mappa: ' + error.message);
         }
-        
         this.hideLoading();
     }
     
@@ -999,11 +1007,10 @@ class CampaignManager {
         
         console.log('Parsing session content...');
         
-        // Simple entity detection patterns
         const patterns = [
-            /([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)/g, // Names (capitalized words)
-            /(?:a|in|da|verso|per|presso)\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)/g, // Locations
-            /(?:Ordine|Regno|Impero|Gilda|Culto)(?:\s+di|\s+del|\s+della)?\s+([A-Z][a-z]+)/g // Organizations
+            /\b([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)\b/g,
+            /(?:a|in|da|verso|per|presso)\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)/g,
+            /(?:Ordine|Regno|Impero|Gilda|Culto)\s+(?:di\s+|del\s+|della\s+)?([A-Z][a-z]+)/g
         ];
         
         const detectedEntities = new Set();
@@ -1022,7 +1029,11 @@ class CampaignManager {
     }
     
     isCommonWord(word) {
-        const commonWords = ['Dopo', 'Prima', 'Durante', 'Mentre', 'Quando', 'Dove', 'Come', 'Perché', 'Questo', 'Quello', 'Questi', 'Quelli', 'Molto', 'Poco', 'Tanto', 'Tutto', 'Anche', 'Ancora', 'Sempre', 'Mai', 'Già', 'Subito', 'Presto', 'Tardi'];
+        const commonWords = [
+            'Dopo', 'Prima', 'Durante', 'Mentre', 'Quando', 'Dove', 'Come', 'Perché',
+            'Questo', 'Quello', 'Questi', 'Quelli', 'Molto', 'Poco', 'Tanto', 'Tutto',
+            'Anche', 'Ancora', 'Sempre', 'Mai', 'Già', 'Subito', 'Presto', 'Tardi'
+        ];
         return commonWords.includes(word);
     }
     
@@ -1043,8 +1054,7 @@ class CampaignManager {
                 div.innerHTML = `
                     <div class="parse-entity-info">
                         <div class="parse-entity-name">${entity}</div>
-                        <div class="parse-entity-type">
-                            Rilevato come: 
+                        <div class="parse-entity-type">Rilevato come: 
                             <select class="form-control entity-type-select" data-entity="${entity}" style="width: auto; display: inline-block; margin-left: 0.5rem;">
                                 <option value="characters">Personaggio</option>
                                 <option value="locations">Luogo</option>
@@ -1067,7 +1077,9 @@ class CampaignManager {
     
     closeParseModal() {
         const modal = document.getElementById('parseModal');
-        if (modal) modal.classList.add('hidden');
+        if (modal) {
+            modal.classList.add('hidden');
+        }
         this.parseData = null;
     }
     
@@ -1105,7 +1117,7 @@ class CampaignManager {
                 const entityData = {
                     id: entityRef.key,
                     name: entityName,
-                    description: `Creato automaticamente dalla sessione "${title || 'Sessione senza titolo'}"`,
+                    description: `Creato automaticamente dalla sessione: ${title || 'Sessione senza titolo'}`,
                     createdBy: this.currentUser,
                     createdAt: Date.now()
                 };
@@ -1150,7 +1162,6 @@ class CampaignManager {
     
     async saveData() {
         this.showLoading();
-        
         try {
             // Data is automatically saved via Firebase listeners
             // This just provides user feedback
@@ -1160,7 +1171,6 @@ class CampaignManager {
         } catch (error) {
             alert('Errore durante il salvataggio: ' + error.message);
         }
-        
         this.hideLoading();
     }
     
@@ -1191,7 +1201,9 @@ class CampaignManager {
     
     importData() {
         const input = document.getElementById('restoreFileInput');
-        if (input) input.click();
+        if (input) {
+            input.click();
+        }
     }
     
     async handleRestoreFile(event) {
@@ -1207,7 +1219,9 @@ class CampaignManager {
             
             // Validate data structure
             const requiredSections = ['timeline', 'characters', 'locations', 'quests', 'organizations'];
-            const hasValidStructure = requiredSections.every(section => importData.hasOwnProperty(section));
+            const hasValidStructure = requiredSections.every(section => 
+                importData.hasOwnProperty(section)
+            );
             
             if (!hasValidStructure) {
                 throw new Error('File di backup non valido');
@@ -1226,7 +1240,6 @@ class CampaignManager {
             }
             
             await update(ref(database), updates);
-            
             alert('Dati ripristinati con successo!');
             console.log('Data restored successfully');
             
@@ -1236,11 +1249,10 @@ class CampaignManager {
         }
         
         this.hideLoading();
-        
-        // Reset file input
         event.target.value = '';
     }
 
+        
     renderTimeline() {
         console.log('Rendering timeline...');
         const container = document.getElementById('timelineContainer');
@@ -1261,21 +1273,16 @@ class CampaignManager {
             const sessionElement = document.createElement('div');
             sessionElement.className = 'timeline-session';
             sessionElement.dataset.sessionId = session.id;
-
-            if (session.active) {
-                sessionElement.classList.add('active');
-            }
+            if (session.active) sessionElement.classList.add('active');
 
             // Crea il riassunto (prime 150 caratteri del contenuto)
             const summary = session.content ? 
-                (session.content.length > 150 ? 
-                    session.content.substring(0, 150) + '...' : 
-                    session.content) : 
-                'Nessun contenuto disponibile';
+                (session.content.length > 150 ? session.content.substring(0, 150) + '...' : session.content) 
+                : 'Nessun contenuto disponibile';
 
             // Combina tutti i tag delle entità
             const allTags = [];
-            
+
             // Gestione characters (ora sono array di ID)
             if (session.characters && session.characters.length > 0) {
                 session.characters.forEach(charId => {
@@ -1285,7 +1292,7 @@ class CampaignManager {
                     }
                 });
             }
-            
+
             // Gestione locations (ora sono array di ID)
             if (session.locations && session.locations.length > 0) {
                 session.locations.forEach(locId => {
@@ -1295,7 +1302,7 @@ class CampaignManager {
                     }
                 });
             }
-            
+
             // Gestione organizations (ora sono array di ID)
             if (session.organizations && session.organizations.length > 0) {
                 session.organizations.forEach(orgId => {
@@ -1316,17 +1323,17 @@ class CampaignManager {
                 <div class="session-number">Sessione ${session.day || session.session || 1}</div>
                 <div class="session-title">${session.title || 'Sessione senza titolo'}</div>
                 <div class="session-summary">${summary}</div>
-                <div class="session-tags">${tagsHtml}${allTags.length > 6 ? `<span class="session-tag">+${allTags.length - 6}</span>` : ''}</div>
+                <div class="session-tags">${tagsHtml}${allTags.length > 6 ? '<span class="session-tag">+' + (allTags.length - 6) + '</span>' : ''}</div>
             `;
 
-            // Click listener per la sessione stessa - MOSTRA IL TESTO COMPLETO
+            // MODIFICA PRINCIPALE: Aggiungere click listener per la sessione stessa
             sessionElement.addEventListener('click', (e) => {
                 // Se il click è su un tag, non aprire il dettaglio della sessione
                 if (e.target.classList.contains('session-tag')) {
                     return; // Il tag gestisce il proprio click
                 }
                 
-                // Apri il modal con il testo completo della sessione
+                // Apri il dettaglio della sessione
                 this.showSessionDetails(session);
             });
 
@@ -1334,11 +1341,10 @@ class CampaignManager {
             sessionElement.querySelectorAll('.session-tag').forEach(tagEl => {
                 tagEl.addEventListener('click', (e) => {
                     e.stopPropagation(); // Previeni il bubble up al parent
-                    
                     const type = tagEl.dataset.type;
                     const id = tagEl.dataset.id;
                     const name = tagEl.dataset.name;
-                    
+
                     if (type && name) {
                         this.switchTab(type);
                         setTimeout(() => {
@@ -1364,27 +1370,26 @@ class CampaignManager {
         }
     }
 
-    // NUOVA FUNZIONE: Mostra il testo completo della sessione in un modal semplificato
+    // NUOVA FUNZIONE: Mostra i dettagli della sessione
     showSessionDetails(session) {
         console.log('Showing session details for:', session);
         
-        const modal = document.getElementById('sessionDetailModal');
-        
-        if (!modal) {
-            console.error('Session detail modal not found');
-            return;
-        }
+        const modal = document.getElementById('entityViewModal');
+        if (!modal) return;
 
         try {
-            const titleEl = document.getElementById('sessionDetailTitle');
-            const descEl = document.getElementById('sessionDetailDescription');
+            const nameNode = modal.querySelector('.entity-name');
+            const descNode = modal.querySelector('.entity-description');
+            const metaNode = modal.querySelector('.entity-meta');
+            const avatarNode = modal.querySelector('.entity-avatar');
 
-            // Popola i dati della sessione
-            if (titleEl) titleEl.textContent = session.title || 'Sessione senza titolo';
-            if (descEl) descEl.textContent = session.content || 'Nessun contenuto disponibile';
+            if (nameNode) nameNode.textContent = session.title || 'Sessione senza titolo';
+            if (descNode) descNode.textContent = session.content || 'Nessun contenuto disponibile';
+            if (metaNode) metaNode.textContent = `Sessione ${session.day || session.session || 1}`;
+            if (avatarNode) avatarNode.style.display = 'none'; // Le sessioni non hanno avatar
 
             modal.classList.remove('hidden');
-            console.log('Session detail modal opened');
+            console.log('Session modal opened');
 
         } catch (error) {
             console.error('Error in showSessionDetails:', error);
@@ -1394,16 +1399,16 @@ class CampaignManager {
     attachTagClickListeners() {
         const tags = document.querySelectorAll('.clickable-tag');
         tags.forEach(tag => {
-            tag.addEventListener('click', (e) => {
+            tag.addEventListener('click', e => {
                 const target = e.currentTarget;
                 const type = target.dataset.type;
                 const id = target.dataset.id;
                 const name = target.textContent.trim();
-                
+
                 if (type && id) {
                     this.showEntityDetails(type, id);
                 }
-                
+
                 // Switch tab e scroll sulla card corrispondente
                 if (type && name) {
                     this.switchTab(type);
@@ -1559,20 +1564,20 @@ class CampaignManager {
     renderQuests() {
         const container = document.getElementById('questsContainer');
         if (!container) return;
-
+        
         container.innerHTML = '';
-
+        
         Object.values(this.data.quests).forEach(quest => {
             const card = document.createElement('div');
             card.className = 'card';
-
+            
             const statusClass = {
-                'active': 'status--success',
-                'completed': 'status--info',
-                'failed': 'status--error',
-                'paused': 'status--warning'
+                active: 'status--success',
+                completed: 'status--info',
+                failed: 'status--error',
+                paused: 'status--warning'
             }[quest.status] || 'status--info';
-
+            
             card.innerHTML = `
                 <div class="card-header">
                     <div>
@@ -1586,7 +1591,7 @@ class CampaignManager {
                     <button class="btn btn--small btn--danger" onclick="campaignManager.deleteEntity('quests', '${quest.id}')">Elimina</button>
                 </div>
             `;
-
+            
             container.appendChild(card);
         });
     }
@@ -1623,7 +1628,7 @@ class CampaignManager {
     renderMap() {
         const container = document.getElementById('mapContainer');
         if (!container) return;
-
+        
         if (this.data.map?.url) {
             container.innerHTML = `<img src="${this.data.map.url}" class="map-image" alt="Campaign Map">`;
         } else {
@@ -1633,31 +1638,32 @@ class CampaignManager {
     
     getQuestStatusText(status) {
         const statusTexts = {
-            'active': 'Attiva',
-            'completed': 'Completata',
-            'failed': 'Fallita',
-            'paused': 'In Pausa'
+            active: 'Attiva',
+            completed: 'Completata',
+            failed: 'Fallita',
+            paused: 'In Pausa'
         };
         return statusTexts[status] || 'Sconosciuto';
     }
     
     showLoading() {
         const spinner = document.getElementById('loadingSpinner');
-        if (spinner) spinner.classList.remove('hidden');
+        if (spinner) {
+            spinner.classList.remove('hidden');
+        }
     }
     
     hideLoading() {
         const spinner = document.getElementById('loadingSpinner');
-        if (spinner) spinner.classList.add('hidden');
+        if (spinner) {
+            spinner.classList.add('hidden');
+        }
     }
 }
 
-// Outside the class scope
-
-// Authentication state change listener
-onAuthStateChanged(auth, (user) => {
+// Outside the class scope: Authentication state change listener
+onAuthStateChanged(auth, user => {
     if (user) {
-        // Show nickname input after login
         const googleLoginBtn = document.getElementById('googleLoginBtn');
         const nicknameInput = document.getElementById('nicknameInput');
         const confirmNickname = document.getElementById('confirmNickname');
@@ -1665,8 +1671,7 @@ onAuthStateChanged(auth, (user) => {
         if (nicknameInput) nicknameInput.style.display = '';
         if (confirmNickname) confirmNickname.style.display = '';
         nicknameInput?.focus();
-        
-        console.log('UID Firebase:', user.uid);
+        console.log("UID Firebase:", user.uid);
     }
 });
 

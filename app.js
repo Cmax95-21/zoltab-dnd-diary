@@ -432,7 +432,7 @@ class CampaignManager {
         console.log('Timeline sortable initialized for grid layout');
     }
     
-    async async updateTimelineOrder() {
+    async updateTimelineOrder() {
         const timelineItems = document.querySelectorAll('.timeline-session');
         const updates = {};
 
@@ -1649,6 +1649,7 @@ const campaignManager = new CampaignManager();
 
 // Make it globally available for onclick handlers
 window.campaignManager = campaignManager;
+
 
 
 

@@ -12,7 +12,7 @@
 <div id="nicknameModal" class="modal">
     <div class="modal-content">
         <h2>Benvenuto nella Campagna D&D</h2>
-        <!-- Step 1: solo questo visibile all’avvio -->
+        <!-- Step 1: solo questo visibile all'avvio -->
         <button id="googleLoginBtn" class="btn btn--primary" style="margin-bottom:18px;">
             Accedi con Google
         </button>
@@ -220,24 +220,18 @@
         <p>Sincronizzazione in corso...</p>
     </div>
 
-...
-    <!-- Hidden file input for restore -->
-    <input type="file" id="restoreFileInput" accept=".json" class="hidden">
-
-    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
-    <script type="module" src="app.js"></script>
-<div id="entityViewModal" class="modal hidden">
-  <div class="modal-content">
-    <span class="modal-close" onclick="campaignManager.closeEntityViewModal()">&times;</span>
-    <div class="entity-view">
-      <h2 class="entity-name"></h2>
-      <div class="entity-meta"></div>
-      <div class="entity-description"></div>
-      <img class="entity-avatar" style="display:none; max-width:80px; margin:10px 0;">
+    <!-- Entity View Modal - FIXED: Moved out of other content -->
+    <div id="entityViewModal" class="modal hidden">
+        <div class="modal-content">
+            <span class="modal-close" onclick="campaignManager.closeEntityViewModal()">&times;</span>
+            <div class="entity-view">
+                <h2 class="entity-name"></h2>
+                <div class="entity-meta"></div>
+                <div class="entity-description"></div>
+                <img class="entity-avatar" style="display:none; max-width:80px; margin:10px 0;">
+            </div>
+        </div>
     </div>
-  </div>
-</div>
-
 
     <!-- Session Presence Modal -->
     <div id="sessionPresenceModal" class="modal hidden">
@@ -265,6 +259,11 @@
         </div>
     </div>
 
+    <!-- Hidden file input for restore -->
+    <input type="file" id="restoreFileInput" accept=".json" class="hidden">
+
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+    <script type="module" src="app.js"></script>
+
 </body>
 </html>
-

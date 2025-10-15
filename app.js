@@ -41,7 +41,6 @@ class CampaignManager {
         this.parseData = null;
         this.currentEntityForSessions = null;
         this.currentEntityTypeForSessions = null;
-        this.currentSessionForDetail = null;
 
         this.data = {
             timeline: {},
@@ -178,8 +177,6 @@ class CampaignManager {
             });
         });
 
-        
-
         // Session presence modal listeners
         const saveSessionPresence = document.getElementById('saveSessionPresence');
         const cancelSessionPresence = document.getElementById('cancelSessionPresence');
@@ -197,16 +194,6 @@ class CampaignManager {
             sessionPresenceModal.addEventListener('click', (e) => {
                 if (e.target === sessionPresenceModal) {
                     this.closeSessionPresenceModal();
-                }
-            });
-        }
-        
-        // Session detail modal backdrop click
-        const sessionDetailModal = document.getElementById('sessionDetailModal');
-        if (sessionDetailModal) {
-            sessionDetailModal.addEventListener('click', (e) => {
-                if (e.target === sessionDetailModal) {
-                    this.closeSessionDetailModal();
                 }
             });
         }
@@ -1332,14 +1319,14 @@ class CampaignManager {
                 <div class="session-tags">${tagsHtml}${allTags.length > 6 ? `<span class="session-tag">+${allTags.length - 6}</span>` : ''}</div>
             `;
 
-            // MODIFICA PRINCIPALE: Aggiungere click listener per la sessione stessa
+            // Click listener per la sessione stessa - MOSTRA IL TESTO COMPLETO
             sessionElement.addEventListener('click', (e) => {
                 // Se il click è su un tag, non aprire il dettaglio della sessione
                 if (e.target.classList.contains('session-tag')) {
                     return; // Il tag gestisce il proprio click
                 }
                 
-                // Apri il dettaglio della sessione
+                // Apri il modal con il testo completo della sessione
                 this.showSessionDetails(session);
             });
 
@@ -1377,11 +1364,10 @@ class CampaignManager {
         }
     }
 
-    // NUOVA FUNZIONE: Mostra i dettagli della sessione nel modal dedicato
+    // NUOVA FUNZIONE: Mostra il testo completo della sessione in un modal semplificato
     showSessionDetails(session) {
         console.log('Showing session details for:', session);
         
-        this.currentSessionForDetail = session;
         const modal = document.getElementById('sessionDetailModal');
         
         if (!modal) {
@@ -1391,106 +1377,17 @@ class CampaignManager {
 
         try {
             const titleEl = document.getElementById('sessionDetailTitle');
-            const numberEl = document.getElementById('sessionDetailNumber');
-            const dateEl = document.getElementById('sessionDetailDate');
             const descEl = document.getElementById('sessionDetailDescription');
-            const entitiesEl = document.getElementById('sessionDetailEntities');
 
             // Popola i dati della sessione
             if (titleEl) titleEl.textContent = session.title || 'Sessione senza titolo';
-            if (numberEl) numberEl.textContent = `Sessione ${session.day || session.session || 1}`;
-            if (dateEl) {
-                const date = session.createdAt ? new Date(session.createdAt).toLocaleDateString('it-IT') : '';
-                dateEl.textContent = date;
-            }
             if (descEl) descEl.textContent = session.content || 'Nessun contenuto disponibile';
-
-            // Crea la lista delle entità coinvolte
-            if (entitiesEl) {
-                entitiesEl.innerHTML = '';
-                
-                const allEntities = [];
-                
-                // Aggiungi personaggi
-                if (session.characters && session.characters.length > 0) {
-                    session.characters.forEach(charId => {
-                        const char = this.data.characters[charId];
-                        if (char) {
-                            allEntities.push({
-                                name: char.name,
-                                type: 'characters',
-                                typeLabel: 'Personaggio',
-                                id: charId
-                            });
-                        }
-                    });
-                }
-                
-                // Aggiungi luoghi
-                if (session.locations && session.locations.length > 0) {
-                    session.locations.forEach(locId => {
-                        const loc = this.data.locations[locId];
-                        if (loc) {
-                            allEntities.push({
-                                name: loc.name,
-                                type: 'locations',
-                                typeLabel: 'Luogo',
-                                id: locId
-                            });
-                        }
-                    });
-                }
-                
-                // Aggiungi organizzazioni
-                if (session.organizations && session.organizations.length > 0) {
-                    session.organizations.forEach(orgId => {
-                        const org = this.data.organizations[orgId];
-                        if (org) {
-                            allEntities.push({
-                                name: org.name,
-                                type: 'organizations',
-                                typeLabel: 'Organizzazione',
-                                id: orgId
-                            });
-                        }
-                    });
-                }
-
-                if (allEntities.length === 0) {
-                    entitiesEl.innerHTML = '<p class="no-entities">Nessuna entità collegata a questa sessione</p>';
-                } else {
-                    allEntities.forEach(entity => {
-                        const entityEl = document.createElement('div');
-                        entityEl.className = 'session-entity-item';
-                        entityEl.innerHTML = `
-                            <span class="entity-name" onclick="campaignManager.showEntityDetails('${entity.type}', '${entity.id}')">${entity.name}</span>
-                            <span class="entity-type">${entity.typeLabel}</span>
-                        `;
-                        entitiesEl.appendChild(entityEl);
-                    });
-                }
-            }
 
             modal.classList.remove('hidden');
             console.log('Session detail modal opened');
 
         } catch (error) {
             console.error('Error in showSessionDetails:', error);
-        }
-    }
-
-    // Funzione per chiudere il modal dei dettagli della sessione
-    closeSessionDetailModal() {
-        const modal = document.getElementById('sessionDetailModal');
-        if (modal) modal.classList.add('hidden');
-        this.currentSessionForDetail = null;
-    }
-
-    // Funzione per modificare la sessione dal modal dettagli
-    editSessionFromDetail() {
-        if (this.currentSessionForDetail) {
-            this.closeSessionDetailModal();
-            this.openEntityModal('timeline', this.currentSessionForDetail.id);
         }
     }
 

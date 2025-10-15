@@ -220,13 +220,6 @@ class CampaignManager {
             });
     }
 
-    // Placeholder for other methods of the CampaignManager class
-    // setNickname(), toggleMasterMode(), saveData(), exportData(), importData(),
-    // handleRestoreFile(), switchTab(), handleSearch(), openEntityModal(),
-    // uploadMap(), downloadMap(), parseSession(), saveEntity(), closeEntityModal(),
-    // executeConfirmedAction(), closeConfirmModal(), confirmParsedEntities(), closeParseModal(),
-    // previewAvatar(), setupFirebaseListeners(), initializeSampleData()
-  
     setupFirebaseListeners() {
         console.log('Setting up Firebase listeners...');
         
@@ -563,7 +556,7 @@ class CampaignManager {
                 container.innerHTML = `
                     <div class="form-group">
                         <label for="locationType">Tipo</label>
-                        <input type="text" id="locationType" class="form-control" placeholder="CittÃ , Dungeon, Piano...">
+                        <input type="text" id="locationType" class="form-control" placeholder="Città, Dungeon, Piano...">
                     </div>
                 `;
                 break;
@@ -651,7 +644,7 @@ class CampaignManager {
             const description = descriptionInput ? descriptionInput.value.trim() : '';
             
             if (!name) {
-                alert('Il nome Ã¨ obbligatorio');
+                alert('Il nome è obbligatorio');
                 this.hideLoading();
                 return;
             }
@@ -915,7 +908,7 @@ class CampaignManager {
     goToSession(sessionId) {
         this.closeSessionPresenceModal();
         this.switchTab('timeline');
-
+        
         setTimeout(() => {
             const sessionElement = document.querySelector(`[data-session-id="${sessionId}"]`);
             if (sessionElement) {
@@ -1037,9 +1030,9 @@ class CampaignManager {
     
     isCommonWord(word) {
         const commonWords = [
-            'Dopo', 'Prima', 'Durante', 'Mentre', 'Quando', 'Dove', 'Come', 'PerchÃ©',
+            'Dopo', 'Prima', 'Durante', 'Mentre', 'Quando', 'Dove', 'Come', 'Perché',
             'Questo', 'Quello', 'Questi', 'Quelli', 'Molto', 'Poco', 'Tanto', 'Tutto',
-            'Anche', 'Ancora', 'Sempre', 'Mai', 'GiÃ ', 'Subito', 'Presto', 'Tardi'
+            'Anche', 'Ancora', 'Sempre', 'Mai', 'Già', 'Subito', 'Presto', 'Tardi'
         ];
         return commonWords.includes(word);
     }
@@ -1053,7 +1046,7 @@ class CampaignManager {
         resultsList.innerHTML = '';
         
         if (entities.length === 0) {
-            resultsList.innerHTML = '<p>Nessuna entitÃ  rilevata nel testo.</p>';
+            resultsList.innerHTML = '<p>Nessuna entità rilevata nel testo.</p>';
         } else {
             entities.forEach(entity => {
                 const div = document.createElement('div');
@@ -1161,7 +1154,7 @@ class CampaignManager {
             
         } catch (error) {
             console.error('Error creating parsed entities:', error);
-            alert('Errore durante la creazione delle entitÃ : ' + error.message);
+            alert('Errore durante la creazione delle entità: ' + error.message);
         }
         
         this.hideLoading();
@@ -1235,7 +1228,7 @@ class CampaignManager {
             }
             
             // Import data to Firebase
-            const updates = {};container.appendChild(dayElement)
+            const updates = {};
             requiredSections.forEach(section => {
                 if (importData[section]) {
                     updates[section] = importData[section];
@@ -1333,10 +1326,21 @@ class CampaignManager {
                 <div class="session-tags">${tagsHtml}${allTags.length > 6 ? '<span class="session-tag">+' + (allTags.length - 6) + '</span>' : ''}</div>
             `;
 
+            // MODIFICA PRINCIPALE: Aggiungere click listener per la sessione stessa
+            sessionElement.addEventListener('click', (e) => {
+                // Se il click è su un tag, non aprire il dettaglio della sessione
+                if (e.target.classList.contains('session-tag')) {
+                    return; // Il tag gestisce il proprio click
+                }
+                
+                // Apri il dettaglio della sessione
+                this.showSessionDetails(session);
+            });
+
             // Event listener per i tag cliccabili
             sessionElement.querySelectorAll('.session-tag').forEach(tagEl => {
                 tagEl.addEventListener('click', (e) => {
-                    e.stopPropagation();
+                    e.stopPropagation(); // Previeni il bubble up al parent
                     const type = tagEl.dataset.type;
                     const id = tagEl.dataset.id;
                     const name = tagEl.dataset.name;
@@ -1366,111 +1370,137 @@ class CampaignManager {
         }
     }
 
-  attachTagClickListeners() {
-  const tags = document.querySelectorAll('.clickable-tag');
-  tags.forEach(tag => {
-    tag.addEventListener('click', e => {
-      const target = e.currentTarget;
-      const type = target.dataset.type;
-      const id = target.dataset.id;
-      const name = target.textContent.trim();
+    // NUOVA FUNZIONE: Mostra i dettagli della sessione
+    showSessionDetails(session) {
+        console.log('Showing session details for:', session);
+        
+        const modal = document.getElementById('entityViewModal');
+        if (!modal) return;
 
-      if (type && id) {
-        this.showEntityDetails(type, id);
-      }
+        try {
+            const nameNode = modal.querySelector('.entity-name');
+            const descNode = modal.querySelector('.entity-description');
+            const metaNode = modal.querySelector('.entity-meta');
+            const avatarNode = modal.querySelector('.entity-avatar');
 
-      // Switch tab e scroll sulla card corrispondente
-      if (type && name) {
-        this.switchTab(type);
-        setTimeout(() => {
-          const cards = document.querySelectorAll(`#${type}Container .card-title`);
-          cards.forEach(card => {
-            if (card.textContent.trim() === name) {
-              card.scrollIntoView({behavior: 'smooth', block: 'center'});
-              card.parentElement.classList.add('highlight');
-              setTimeout(() => card.parentElement.classList.remove('highlight'), 1500);
-            }
-          });
-        }, 250);
-      }
-    });
-  });
-}
+            if (nameNode) nameNode.textContent = session.title || 'Sessione senza titolo';
+            if (descNode) descNode.textContent = session.content || 'Nessun contenuto disponibile';
+            if (metaNode) metaNode.textContent = `Sessione ${session.day || session.session || 1}`;
+            if (avatarNode) avatarNode.style.display = 'none'; // Le sessioni non hanno avatar
+
+            modal.classList.remove('hidden');
+            console.log('Session modal opened');
+
+        } catch (error) {
+            console.error('Error in showSessionDetails:', error);
+        }
+    }
+
+    attachTagClickListeners() {
+        const tags = document.querySelectorAll('.clickable-tag');
+        tags.forEach(tag => {
+            tag.addEventListener('click', e => {
+                const target = e.currentTarget;
+                const type = target.dataset.type;
+                const id = target.dataset.id;
+                const name = target.textContent.trim();
+
+                if (type && id) {
+                    this.showEntityDetails(type, id);
+                }
+
+                // Switch tab e scroll sulla card corrispondente
+                if (type && name) {
+                    this.switchTab(type);
+                    setTimeout(() => {
+                        const cards = document.querySelectorAll(`#${type}Container .card-title`);
+                        cards.forEach(card => {
+                            if (card.textContent.trim() === name) {
+                                card.scrollIntoView({behavior: 'smooth', block: 'center'});
+                                card.parentElement.classList.add('highlight');
+                                setTimeout(() => card.parentElement.classList.remove('highlight'), 1500);
+                            }
+                        });
+                    }, 250);
+                }
+            });
+        });
+    }
     
 	loadDaySummary(dayId) {
-    const summaryRef = ref(database, `summaries/${dayId}`);
-    onValue(summaryRef, (snapshot) => {
-      const summary = snapshot.val() || "";
-      const textarea = document.getElementById(`summary-${dayId}`);
-      if (textarea) textarea.value = summary;
-    });
-  }
-
-  saveDaySummary(dayId, text) {
-    const summaryRef = ref(database, `summaries/${dayId}`);
-    set(summaryRef, text).catch(console.error);
-  }
-
-  attachSummaryListeners(dayId) {
-    const textarea = document.getElementById(`summary-${dayId}`);
-    if (!textarea) return;
-
-    textarea.addEventListener("blur", () => {
-      this.saveDaySummary(dayId, textarea.value);
-    });
-  }
-
-showEntityDetails(type, id) {
-  console.log('DEBUG showEntityDetails called with:', type, id);
-
-  const entity = this.data[type][id];
-  console.log('DEBUG entity:', entity);
-  if (!entity) return;
-
-  const modal = document.getElementById('entityViewModal');
-  console.log('DEBUG modal:', modal);
-  if (!modal) return;
-
-  try {
-    const nameNode = modal.querySelector('.entity-name');
-    const descNode = modal.querySelector('.entity-description');
-    const metaNode = modal.querySelector('.entity-meta');
-    const avatarNode = modal.querySelector('.entity-avatar');
-    console.log('DEBUG nodes:', {nameNode, descNode, metaNode, avatarNode});
-
-    if (nameNode) nameNode.textContent = entity.name || entity.title || '';
-    if (descNode) descNode.textContent = entity.description || entity.content || '';
-
-    let meta = '';
-    if (type === 'characters') {
-      meta = `${entity.race || ''} ${entity.class || ''}`.trim();
-      if (avatarNode) {
-        if (entity.avatar) {
-          avatarNode.src = entity.avatar;
-          avatarNode.style.display = '';
-        } else {
-          avatarNode.style.display = 'none';
-        }
-      }
-    } else if (type === 'locations' || type === 'organizations') {
-      meta = entity.type || '';
-      if (avatarNode) avatarNode.style.display = 'none';
+        const summaryRef = ref(database, `summaries/${dayId}`);
+        onValue(summaryRef, (snapshot) => {
+            const summary = snapshot.val() || "";
+            const textarea = document.getElementById(`summary-${dayId}`);
+            if (textarea) textarea.value = summary;
+        });
     }
-    if (metaNode) metaNode.textContent = meta;
-    console.log('DEBUG before remove hidden:', modal.className);
 
-    modal.classList.remove('hidden');
-    console.log('DEBUG after remove hidden:', modal.className);
+    saveDaySummary(dayId, text) {
+        const summaryRef = ref(database, `summaries/${dayId}`);
+        set(summaryRef, text).catch(console.error);
+    }
 
-  } catch (e) {
-    console.error('DEBUG ERROR in showEntityDetails:', e);
-  }
-}
+    attachSummaryListeners(dayId) {
+        const textarea = document.getElementById(`summary-${dayId}`);
+        if (!textarea) return;
 
-closeEntityViewModal() {
-  const modal = document.getElementById('entityViewModal');
-  if (modal) modal.classList.add('hidden');
-}
+        textarea.addEventListener("blur", () => {
+            this.saveDaySummary(dayId, textarea.value);
+        });
+    }
+
+    showEntityDetails(type, id) {
+        console.log('DEBUG showEntityDetails called with:', type, id);
+
+        const entity = this.data[type][id];
+        console.log('DEBUG entity:', entity);
+        if (!entity) return;
+
+        const modal = document.getElementById('entityViewModal');
+        console.log('DEBUG modal:', modal);
+        if (!modal) return;
+
+        try {
+            const nameNode = modal.querySelector('.entity-name');
+            const descNode = modal.querySelector('.entity-description');
+            const metaNode = modal.querySelector('.entity-meta');
+            const avatarNode = modal.querySelector('.entity-avatar');
+            console.log('DEBUG nodes:', {nameNode, descNode, metaNode, avatarNode});
+
+            if (nameNode) nameNode.textContent = entity.name || entity.title || '';
+            if (descNode) descNode.textContent = entity.description || entity.content || '';
+
+            let meta = '';
+            if (type === 'characters') {
+                meta = `${entity.race || ''} ${entity.class || ''}`.trim();
+                if (avatarNode) {
+                    if (entity.avatar) {
+                        avatarNode.src = entity.avatar;
+                        avatarNode.style.display = '';
+                    } else {
+                        avatarNode.style.display = 'none';
+                    }
+                }
+            } else if (type === 'locations' || type === 'organizations') {
+                meta = entity.type || '';
+                if (avatarNode) avatarNode.style.display = 'none';
+            }
+            if (metaNode) metaNode.textContent = meta;
+            console.log('DEBUG before remove hidden:', modal.className);
+
+            modal.classList.remove('hidden');
+            console.log('DEBUG after remove hidden:', modal.className);
+
+        } catch (e) {
+            console.error('DEBUG ERROR in showEntityDetails:', e);
+        }
+    }
+
+    closeEntityViewModal() {
+        const modal = document.getElementById('entityViewModal');
+        if (modal) modal.classList.add('hidden');
+    }
 
     renderCharacters() {
         const container = document.getElementById('charactersContainer');
@@ -1644,23 +1674,9 @@ onAuthStateChanged(auth, user => {
         console.log("UID Firebase:", user.uid);
     }
 });
+
 // Initialize the application
 const campaignManager = new CampaignManager();
 
 // Make it globally available for onclick handlers
 window.campaignManager = campaignManager;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

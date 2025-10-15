@@ -220,7 +220,7 @@
         <p>Sincronizzazione in corso...</p>
     </div>
 
-    <!-- Entity View Modal - FIXED: Moved out of other content -->
+    <!-- Entity View Modal - For viewing entity details -->
     <div id="entityViewModal" class="modal hidden">
         <div class="modal-content">
             <span class="modal-close" onclick="campaignManager.closeEntityViewModal()">&times;</span>
@@ -229,6 +229,35 @@
                 <div class="entity-meta"></div>
                 <div class="entity-description"></div>
                 <img class="entity-avatar" style="display:none; max-width:80px; margin:10px 0;">
+            </div>
+        </div>
+    </div>
+
+    <!-- SESSION DETAIL MODAL - NUOVO MODAL DEDICATO ALLE SESSIONI -->
+    <div id="sessionDetailModal" class="modal hidden">
+        <div class="modal-content session-detail-content">
+            <div class="modal-header">
+                <h3 id="sessionDetailTitle">Dettagli Sessione</h3>
+                <button class="modal-close" onclick="campaignManager.closeSessionDetailModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="session-detail-view">
+                    <div class="session-detail-meta">
+                        <span id="sessionDetailNumber" class="session-number-badge"></span>
+                        <span id="sessionDetailDate" class="session-date"></span>
+                    </div>
+                    <div class="session-detail-content">
+                        <div id="sessionDetailDescription" class="session-description"></div>
+                    </div>
+                    <div class="session-detail-entities">
+                        <h4>Entità coinvolte:</h4>
+                        <div id="sessionDetailEntities" class="session-entities-list"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="editSessionBtn" class="btn btn--primary master-only" onclick="campaignManager.editSessionFromDetail()">Modifica Sessione</button>
+                <button id="closeSessionDetail" class="btn btn--secondary" onclick="campaignManager.closeSessionDetailModal()">Chiudi</button>
             </div>
         </div>
     </div>

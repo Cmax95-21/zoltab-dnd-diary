@@ -58,7 +58,7 @@ class CampaignManager {
         console.log('Initializing Campaign Manager...');
         this.setupEventListeners();
         this.setupFirebaseListeners();
-        setTimeout(() => this.initializeSampleData(), 2000);
+        // RIMOSSA LA CHIAMATA A initializeSampleData per evitare sovrascrittura dati
 
         // Show only the Google login button at startup
         const nicknameInput = document.getElementById('nicknameInput');
@@ -284,54 +284,9 @@ class CampaignManager {
         });
     }
 
-    async initializeSampleData() {
-        // Check if we have any data, if not, add some sample data
-        if (Object.keys(this.data.timeline).length === 0) {
-            console.log('Initializing sample data...');
-
-            const sampleData = {
-                timeline: {
-                    session1: {
-                        id: 'session1',
-                        session: 1,
-                        day: 1,  // manteniamo per compatibilità
-                        title: 'L\'Inizio della Campagna',
-                        content: 'Prima sessione della campagna. I personaggi si incontrano a Elysium e iniziano la loro avventura. Durante questa sessione vengono stabiliti i primi contatti e alleanze.',
-                        characters: ['char1'],  // ora sono ID invece di nomi
-                        locations: ['loc1'],    // ora sono ID invece di nomi
-                        organizations: [],      // nuovo campo
-                        active: true,
-                        order: 0
-                    }
-                },
-                characters: {
-                    char1: {
-                        id: 'char1',
-                        name: 'Zoltab',
-                        race: 'Aasimar',
-                        class: 'Paladino Conquista',
-                        description: 'Protagonista nato nell\'Elysium',
-                        avatar: null
-                    }
-                },
-                locations: {
-                    loc1: {
-                        id: 'loc1',
-                        name: 'Elysium',
-                        type: 'Piano Celestiale',
-                        description: 'Piano di esistenza dei celestiali'
-                    }
-                }
-            };
-
-            try {
-                await update(ref(database), sampleData);
-                console.log('Sample data initialized');
-            } catch (error) {
-                console.error('Error initializing sample data:', error);
-            }
-        }
-    }
+    // FUNZIONE COMPLETAMENTE RIMOSSA PER EVITARE SOVRASCRITTURA DATI
+    // La funzione initializeSampleData() causava la perdita dei dati esistenti
+    // perché veniva chiamata prima del caricamento completo da Firebase
 
     showNicknameModal() {
         const modal = document.getElementById('nicknameModal');

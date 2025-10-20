@@ -958,7 +958,7 @@ class CampaignManager {
         const content = contentInput ? contentInput.value.trim() : '';
         
         if (!content) {
-            alert('Inserisci il contenuto della sessione per l\\'analisi');
+            alert('Inserisci il contenuto della sessione per l\'analisi');
             return;
         }
         
@@ -1785,4 +1785,5 @@ const campaignManager = new CampaignManager();
 
 // Make it globally available for onclick handlers
 window.campaignManager = campaignManager;
+
 

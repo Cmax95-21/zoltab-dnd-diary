@@ -711,7 +711,7 @@ class CampaignManager {
                     console.log('Entity deleted successfully');
                 } catch (error) {
                     console.error('Error deleting entity:', error);
-                    alert('Errore durante l\\'eliminazione: ' + error.message);
+                    alert('Errore durante l\'eliminazione: ' + error.message);
                 }
                 this.hideLoading();
             }
@@ -1785,3 +1785,4 @@ const campaignManager = new CampaignManager();
 
 // Make it globally available for onclick handlers
 window.campaignManager = campaignManager;
+
